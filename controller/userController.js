@@ -1,5 +1,4 @@
 const userModel = require("../model/User");
-const Auth = require("../middleware/auth");
 
 class UserController {
   static async signup(req, res) {
