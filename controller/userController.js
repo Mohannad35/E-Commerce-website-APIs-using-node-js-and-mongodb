@@ -12,15 +12,15 @@ class UserController {
     }
   }
   static async login(req, res) {
+    const user = await userModel.findByCredentials(
+      req.body.email,
+      req.body.password
+    );
     try {
-      const user = await userModel.findByCredentials(
-        req.body.email,
-        req.body.password
-      );
       const token = await user.generateAuthToken();
       res.send({ user, token });
-    } catch (error) {
-      res.status(400).send(error);
+    } catch {
+      res.status(400).send(user);
     }
   }
   static async logout(req, res) {

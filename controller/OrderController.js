@@ -1,6 +1,7 @@
 const Order = require("../model/Order");
 
 class OrderController {
+  // get order for the logged in user
   static async getOrders(req, res) {
     const owner = req.user._id;
     try {
@@ -10,9 +11,11 @@ class OrderController {
       }
       res.status(404).send("No orders found");
     } catch (error) {
-      res.status(500).send();
+      res.status(500).send(error);
     }
   }
+
+  // checkout to finish the order
   static async checkout(req, res) {}
 }
 
