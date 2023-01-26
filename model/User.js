@@ -11,9 +11,9 @@ const userSchema = new mongoose.Schema(
 			trim: true,
 			lowercase: true,
 			validate(value) {
-				if (!value.match(/^[A-Za-z][A-Za-z0-9_]{3,29}$/g)) {
+				if (!value.match(/^[A-Za-z][A-Za-z0-9_]{2,29}$/g)) {
 					throw new Error(
-						"{VALUE} must contain only alphanumeric characters or underscores with length (8,30)"
+						"{VALUE} must contain only alphanumeric characters or underscores with length (3,30)"
 					);
 				}
 			},
@@ -44,14 +44,6 @@ const userSchema = new mongoose.Schema(
 			// 	}
 			// },
 		},
-		tokens: [
-			{
-				token: {
-					type: String,
-					required: true,
-				},
-			},
-		],
 		accountType: {
 			type: String,
 			lowercase: true,
@@ -61,6 +53,25 @@ const userSchema = new mongoose.Schema(
 				message: "{VALUE} is not valid must be admin, or vendor, or client",
 			},
 		},
+		phoneNumbers: [
+			{
+				phoneNumber: {
+					type: String,
+					minlength: 10,
+					maxlength: 12,
+					unique: true,
+					required: true,
+				},
+			},
+		],
+		tokens: [
+			{
+				token: {
+					type: String,
+					required: true,
+				},
+			},
+		],
 	},
 	{
 		timestamps: true,
@@ -77,43 +88,34 @@ userSchema.methods.generateAuthToken = async function () {
 };
 
 // used to set accountType
-userSchema.methods.setAccountType = async function (type) {
-	const user = this;
+userSchema.statics.setAccountType = async function (id, type) {
+	const user = await User.findOne({ _id: id });
 	user.accountType = type;
 	await user.save();
+	return user;
 };
 
 // used before any save op to hash plain password
 userSchema.pre("save", async function (next) {
 	const user = this;
-	if (user.isModified("password")) {
-		user.password = await bcrypt.hash(user.password, 8);
-	}
-	if (user.tokens.length > 5) {
-		throw new Error("max tokens exceeded");
-	}
+	if (user.isModified("password")) user.password = await bcrypt.hash(user.password, 8);
+	if (user.tokens.length > 5) throw new Error("max tokens exceeded");
 	next();
 });
 
 // used in login route to find user with given email and password
 userSchema.statics.findByCredentials = async (email, password) => {
 	const user = await User.findOne({ email });
-	if (!user) {
-		throw new Error("Unable to log in (Unable to find email)");
-	}
+	if (!user) throw new Error("Unable to log in (Unable to find email)");
 	const isMatch = await bcrypt.compare(password, user.password);
-	if (!isMatch) {
-		throw new Error("Unable to login (Password is incorrect)");
-	}
+	if (!isMatch) throw new Error("Unable to login (Password is incorrect)");
 	return user;
 };
 
 // used in show all users
 userSchema.statics.findAllUsers = async () => {
 	const users = await User.find({}, { _id: 0, name: 1, accountType: 1 });
-	if (!users) {
-		throw new Error("Database is empty!)");
-	}
+	if (!users) throw new Error("Database is empty!)");
 	return users;
 };
 

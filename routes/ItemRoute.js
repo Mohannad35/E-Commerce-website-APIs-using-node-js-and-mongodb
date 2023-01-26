@@ -8,7 +8,7 @@ const router = new express.Router();
 router.get("/items", ItemController.getAllItems);
 
 // fetch an item
-router.get("/items/:id", ItemController.getOneItem);
+router.get("/item", ItemController.getOneItem);
 
 // create an item
 router.post("/items", Auth, ItemController.addItem);
