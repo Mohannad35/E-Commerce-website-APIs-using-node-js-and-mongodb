@@ -16,6 +16,11 @@ require('./config/db');
 const port = process.env.PORT || 3000;
 const app = express();
 
+
+app.get('/',(req,res,next)=>{
+	res.redirect('/homepage')
+})
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
