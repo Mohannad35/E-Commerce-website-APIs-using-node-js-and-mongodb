@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema(
 			validate(value) {
 				if (!value.match(/^[A-Za-z][A-Za-z0-9_]{2,29}$/g)) {
 					throw new Error(
-						"{VALUE} must contain only alphanumeric characters or underscores with length (3,30)"
+						'{VALUE} must contain only alphanumeric characters or underscores with length (3,30)'
 					);
 				}
 			},
@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema(
 			lowercase: true,
 			validate(value) {
 				if (!validator.isEmail(value)) {
-					throw new Error("Email is invalid");
+					throw new Error('Email is invalid');
 				}
 			},
 		},
@@ -47,23 +47,31 @@ const userSchema = new mongoose.Schema(
 		accountType: {
 			type: String,
 			lowercase: true,
-			default: "client",
+			default: 'client',
 			enum: {
-				values: ["admin", "vendor", "client"],
-				message: "{VALUE} is not valid must be admin, or vendor, or client",
+				values: ['admin', 'vendor', 'client'],
+				message: '{VALUE} is not valid must be admin, or vendor, or client',
 			},
 		},
-		phoneNumbers: [
-			{
-				phoneNumber: {
-					type: String,
-					minlength: 10,
-					maxlength: 12,
-					unique: true,
-					required: true,
-				},
+		phoneNumbers: {
+			type: [String],
+			minlength: 10,
+			maxlength: 12,
+			required: [true, 'User phone number required'],
+			// validate: {
+			// 	validator: function (value) {
+			// 		return !value.match(/01[0125]\d{8}/.g);
+			// 	},
+			// 	message: props => `${props.value} is not a valid phone number!`,
+			// },
+			validate(value) {
+				// console.log(value);
+				// console.log(value[value.length - 1]);
+				if (!value[value.length - 1].match(/^01[0125]\d{8}$/g)) {
+					throw new Error(`${value[value.length - 1]} is not a valid phone number!`);
+				}
 			},
-		],
+		},
 		tokens: [
 			{
 				token: {
@@ -96,10 +104,13 @@ userSchema.statics.setAccountType = async function (id, type) {
 };
 
 // used before any save op to hash plain password
-userSchema.pre("save", async function (next) {
+userSchema.pre('save', async function (next) {
 	const user = this;
-	if (user.isModified("password")) user.password = await bcrypt.hash(user.password, 8);
-	if (user.tokens.length > 5) throw new Error("max tokens exceeded");
+	if (user.isModified('password')) user.password = await bcrypt.hash(user.password, 8);
+	if (user.tokens.length > 5) throw new Error('max tokens exceeded');
+	if (user.isModified('phoneNumbers'))
+		if (new Set(user.phoneNumbers).size !== user.phoneNumbers.length)
+			throw new Error('phone number already added');
 	next();
 });
 
