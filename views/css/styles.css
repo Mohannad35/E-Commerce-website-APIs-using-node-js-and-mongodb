@@ -31,9 +31,10 @@ background: #eee;
 }
 
 .errorMessage {
-  background-color: #e347ff;
+  background-color: #a04daf;
   font-size: 20px;
   padding: auto;
+  color: white;
   position: relative;
   top: auto;
   right: auto;
