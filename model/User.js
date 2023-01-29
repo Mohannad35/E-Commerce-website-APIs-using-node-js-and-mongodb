@@ -57,20 +57,20 @@ const userSchema = new mongoose.Schema(
 			type: [String],
 			minlength: 10,
 			maxlength: 12,
-			required: [true, 'User phone number required'],
+			// required: [true, 'User phone number required'],
 			// validate: {
 			// 	validator: function (value) {
 			// 		return !value.match(/01[0125]\d{8}/.g);
 			// 	},
 			// 	message: props => `${props.value} is not a valid phone number!`,
 			// },
-			validate(value) {
-				// console.log(value);
-				// console.log(value[value.length - 1]);
-				if (!value[value.length - 1].match(/^01[0125]\d{8}$/g)) {
-					throw new Error(`${value[value.length - 1]} is not a valid phone number!`);
-				}
-			},
+			// validate(value) {
+			// 	// console.log(value);
+			// 	// console.log(value[value.length - 1]);
+			// 	if (!value[value.length - 1].match(/^01[0125]\d{8}$/g)) {
+			// 		throw new Error(`${value[value.length - 1]} is not a valid phone number!`);
+			// 	}
+			// },
 		},
 		tokens: [
 			{

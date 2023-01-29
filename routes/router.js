@@ -32,6 +32,10 @@ router.post('/login', UserController.login);
 
 router.get('/sign-out', Auth, UserController.logout);
 
+router.get('/faq', (req, res) => {
+	res.render('FAQ');
+});
+
 // not user anymore
 router.get('/user-form', async (req, res) => {
 	try{
