@@ -17,16 +17,14 @@ class UserController {
 	// login a user and return the user logged in token
 	static async login(req, res) {
 		try {
-			// console.log(req.body, req.params, req.query);
+			console.log(req.body, req.params, req.query);
 			const user = await userModel.findByCredentials(req.body.email, req.body.password);
 			const token = await user.generateAuthToken();
 			// res.send(token);
-			res.cookie('userToken', token);
 			res.cookie('name', user.name);
+			res.cookie('userToken', token);
 			res.cookie('userType', user.accountType);
-			// req.flash('name', user.name);
-			// req.flash('email', user.email);
-			// req.flash('accountType', user.accountType);
+			// req.flash('userType', user.accountType);
 			res.redirect('/homepage');
 		} catch (error) {
 			// res.status(400).send(error.message);
@@ -43,9 +41,18 @@ class UserController {
 				return token.token !== req.token;
 			});
 			await req.user.save();
-			res.send('Logged out from this session successfully');
+			// res.send('Logged out from this session successfully');
+			console.log(res.cookies);
+			res.clearCookie('userToken');
+			res.clearCookie('name');
+			// res.clearCookie('userType');
+			res.cookie('userType', 'guest');
+			// req.flash('userType', 'guest');
+			res.redirect('/homepage');
 		} catch (error) {
-			res.status(500).send(error.message);
+			// res.status(500).send(error.message);
+			req.flash('err', error.message);
+			res.redirect('/homepage');
 		}
 	}
 

@@ -22,7 +22,7 @@
       <!-- Top Nav -->
       <div class="top-nav">
         <div class="container d-flex">
-          <p>Order Online Or Call Us: (001) 2222-55555</p>
+          <p>Order Online </p>
           <ul class="d-flex">
             <li><a href="#">
                 <%= name %>
@@ -30,13 +30,28 @@
             <li><a href="#">About Us</a></li>
             <li><a href="#">FAQ</a></li>
             <li><a href="#">Contact</a></li>
+            <% if (userType==='guest' ) { %>
+              <li><a href="/login" style="font-weight: bold">Sign in</a></li>
+              <li><a href="#" style="font-weight: bold" >Sign up</a></li>
+              <% } else if (userType=='client' ) { %>
+                <li><a href="/sign-out" style="font-weight: bold">Sign out</a></li>
+                <li><a href="#" style="font-weight: bold">Cart</a></li>
+                <a href="#" style="font-weight: bold">Recommendations</a> <!--v3-->
+                <% } else if (userType=='admin' ) { %> <!--v9-->
+                  <li><a href="/sign-out" style="font-weight: bold">Sign out</a></li>
+                  <li><a href="#" style="font-weight: bold">Sellers' list</a></li>
+                  <li><a href="#" style="font-weight: bold">Consumers' list</a></li>
+                  <% } else if (userType=='vendor' ) { %> <!--v7-->
+                    <li><a href="/sign-out" style="font-weight: bold">Sign out</a></li>
+                    <li><a href="#" style="font-weight: bold">Create product</a></li>
+                    <% } %>
           </ul>
         </div>
       </div>
       <div class="navigation">
         <div class="nav-center container d-flex">
-          <a href="/" class="logo">
-            <h1>Dans</h1>
+          <a href="/homepage" class="logo">
+            <h1>E-Commerce</h1>
           </a>
 
           <ul class="nav-list d-flex">
@@ -74,7 +89,7 @@
           </ul>
 
           <div class="icons d-flex">
-            <a href="login.html" class="icon">
+            <a href="/user-form" class="icon">
               <i class="bx bx-user"></i>
             </a>
             <div class="icon">
@@ -134,7 +149,10 @@
 
     <!-- Categories Section -->
     <section class="section category">
+
       <div class="cat-center">
+        <button class="pre-btn"><img src="images/arrow.png" alt=""></button>
+
         <div class="cat">
           <img src="./images/cat3.jpg" alt="" />
           <div>
@@ -153,6 +171,10 @@
             <p>MEN'S WEAR</p>
           </div>
         </div>
+
+
+
+        <button class="nxt-btn"><img src="images/arrow.png" alt=""></button>
       </div>
     </section>
 
@@ -173,7 +195,7 @@
           <div class="product-info">
             <span>MEN'S CLOTHES</span>
             <a href="productDetails.html">Quis Nostrud Exercitation</a>
-            <h4>$700</h4>
+            <h4>EGP700</h4>
           </div>
           <ul class="icons">
             <li><i class="bx bx-heart"></i></li>
@@ -192,7 +214,7 @@
           <div class="product-info">
             <span>MEN'S CLOTHES</span>
             <a href="">Sonata White Men’s Shirt</a>
-            <h4>$800</h4>
+            <h4>EGP800</h4>
           </div>
           <ul class="icons">
             <li><i class="bx bx-heart"></i></li>
@@ -209,7 +231,7 @@
           <div class="product-info">
             <span>MEN'S CLOTHES</span>
             <a href="">Concepts Solid Pink Men’s Polo</a>
-            <h4>$150</h4>
+            <h4>EGP150</h4>
           </div>
           <ul class="icons">
             <li><i class="bx bx-heart"></i></li>
@@ -227,7 +249,7 @@
           <div class="product-info">
             <span>MEN'S CLOTHES</span>
             <a href="">Edor do eiusmod tempor</a>
-            <h4>$900</h4>
+            <h4>EGP900</h4>
           </div>
           <ul class="icons">
             <li><i class="bx bx-heart"></i></li>
@@ -244,7 +266,7 @@
           <div class="product-info">
             <span>MEN'S CLOTHES</span>
             <a href="">Edor do eiusmod tempor</a>
-            <h4>$100</h4>
+            <h4>EGP100</h4>
           </div>
           <ul class="icons">
             <li><i class="bx bx-heart"></i></li>
@@ -261,7 +283,7 @@
           <div class="product-info">
             <span>MEN'S CLOTHES</span>
             <a href="">Edor do eiusmod tempor</a>
-            <h4>$500</h4>
+            <h4>EGP500</h4>
           </div>
           <ul class="icons">
             <li><i class="bx bx-heart"></i></li>
@@ -279,7 +301,7 @@
           <div class="product-info">
             <span>MEN'S CLOTHES</span>
             <a href="">Edor do eiusmod tempor</a>
-            <h4>$200</h4>
+            <h4>EGP200</h4>
           </div>
           <ul class="icons">
             <li><i class="bx bx-heart"></i></li>
@@ -296,7 +318,7 @@
           <div class="product-info">
             <span>MEN'S CLOTHES</span>
             <a href="">Edor do eiusmod tempor</a>
-            <h4>$560</h4>
+            <h4>EGP560</h4>
           </div>
           <ul class="icons">
             <li><i class="bx bx-heart"></i></li>
@@ -344,7 +366,7 @@
           <div class="product-info">
             <span>MEN'S CLOTHES</span>
             <a href="">Quis Nostrud Exercitation</a>
-            <h4>$700</h4>
+            <h4>EGP700</h4>
           </div>
           <ul class="icons">
             <li><i class="bx bx-heart"></i></li>
@@ -362,7 +384,7 @@
           <div class="product-info">
             <span>MEN'S CLOTHES</span>
             <a href="">Sonata White Men’s Shirt</a>
-            <h4>$800</h4>
+            <h4>EGP800</h4>
           </div>
           <ul class="icons">
             <li><i class="bx bx-heart"></i></li>
@@ -380,7 +402,7 @@
           <div class="product-info">
             <span>MEN'S CLOTHES</span>
             <a href="">Concepts Solid Pink Men’s Polo</a>
-            <h4>$150</h4>
+            <h4>EGP150</h4>
           </div>
           <ul class="icons">
             <li><i class="bx bx-heart"></i></li>
@@ -397,7 +419,7 @@
           <div class="product-info">
             <span>MEN'S CLOTHES</span>
             <a href="">Edor do eiusmod tempor</a>
-            <h4>$900</h4>
+            <h4>EGP900</h4>
           </div>
           <ul class="icons">
             <li><i class="bx bx-heart"></i></li>

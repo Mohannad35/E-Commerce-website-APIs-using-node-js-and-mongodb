@@ -13,6 +13,80 @@
 
 	<body>
 
+		<div class="top-nav">
+			<div class="container d-flex">
+				<p>Order Online </p>
+				<ul class="d-flex">
+					<li><a href="#">
+							<%= name %>
+						</a></li>
+					<li><a href="#">About Us</a></li>
+					<li><a href="#">FAQ</a></li>
+					<li><a href="#">Contact</a></li>
+					<% if (userType==='guest' ) { %>
+						<li><a href="/login" style="font-weight: bold">Sign in</a></li>
+						<li><a href="#" style="font-weight: bold" >Sign up</a></li>
+						<% } else if (userType=='client' ) { %>
+							<li><a href="/sign-out" style="font-weight: bold">Sign out</a></li>
+							<li><a href="#" style="font-weight: bold">Cart</a></li>
+							<a href="#" style="font-weight: bold">Recommendations</a> <!--v3-->
+							<% } else if (userType=='admin' ) { %> <!--v9-->
+								<li><a href="/sign-out" style="font-weight: bold">Sign out</a></li>
+								<li><a href="#" style="font-weight: bold">Sellers' list</a></li>
+								<li><a href="#" style="font-weight: bold">Consumers' list</a></li>
+								<% } else if (userType=='vendor' ) { %> <!--v7-->
+									<li><a href="/sign-out" style="font-weight: bold">Sign out</a></li>
+									<li><a href="#" style="font-weight: bold">Create product</a></li>
+									<% } %>
+				</ul>
+			</div>
+		</div>
+		<div class="navigation">
+			<div class="nav-center container d-flex">
+				<a href="/homepage" class="logo">
+					<h1>E-Commerce</h1>
+				</a>
+
+				<ul class="nav-list d-flex">
+					<li class="nav-item">
+						<a href="/" class="nav-link">Home</a>
+					</li>
+					<li class="nav-item">
+						<a href="product.html" class="nav-link">Shop</a>
+					</li>
+					<li class="nav-item">
+						<a href="#terms" class="nav-link">Terms</a>
+					</li>
+					<li class="nav-item">
+						<a href="#about" class="nav-link">About</a>
+					</li>
+					<li class="nav-item">
+						<a href="#contact" class="nav-link">Contact</a>
+					</li>
+				</ul>
+
+				<div class="icons d-flex">
+					<a href="/user-form" class="icon">
+						<i class="bx bx-user"></i>
+					</a>
+					<div class="icon">
+						<i class="bx bx-search"></i>
+					</div>
+					<div class="icon">
+						<i class="bx bx-heart"></i>
+						<span class="d-flex">0</span>
+					</div>
+					<a href="cart.html" class="icon">
+						<i class="bx bx-cart"></i>
+						<span class="d-flex">0</span>
+					</a>
+				</div>
+
+				<div class="hamburger">
+					<i class="bx bx-menu-alt-left"></i>
+				</div>
+			</div>
+		</div>
 		<!-- user form -->
 		<div class="container">
 			<div class="user-form">
@@ -23,7 +97,7 @@
 					<%= email%>
 				</p>
 				<p>
-					<%= accountType%>
+					<%= userType%>
 				</p>
 			</div>
 		</div>
