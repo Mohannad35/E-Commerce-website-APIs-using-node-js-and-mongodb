@@ -5,19 +5,32 @@ class UserController {
 	// create a user account and return the user and the logged in token
 	static async signup(req, res) {
 		try {
-			const user = new userModel(req.body);
+			if (req.body.password !== req.body.repeatedPassword)
+				throw new Error('Password dose not match');
+			// console.log(req.body);
+			const user = new userModel({
+				name: req.body.name,
+				email: req.body.email,
+				password: req.body.password,
+			});
 			await user.save();
 			const token = await user.generateAuthToken();
-			res.status(201).send({ user, token });
+			res.cookie('name', user.name);
+			res.cookie('userToken', token);
+			res.cookie('userType', user.accountType);
+			res.redirect('/');
+			// res.status(201).send({ user, token });
 		} catch (error) {
-			res.status(400).send(error.message);
+			// res.status(400).send(error.message);
+			req.flash('err', error.message);
+			res.redirect('/sign-up');
 		}
 	}
 
 	// login a user and return the user logged in token
 	static async login(req, res) {
 		try {
-			console.log(req.body, req.params, req.query);
+			// console.log(req.body, req.params, req.query);
 			const user = await userModel.findByCredentials(req.body.email, req.body.password);
 			const token = await user.generateAuthToken();
 			// res.send(token);
@@ -25,7 +38,7 @@ class UserController {
 			res.cookie('userToken', token);
 			res.cookie('userType', user.accountType);
 			// req.flash('userType', user.accountType);
-			res.redirect('/homepage');
+			res.redirect('/');
 		} catch (error) {
 			// res.status(400).send(error.message);
 			req.flash('err', error.message);
@@ -42,17 +55,17 @@ class UserController {
 			});
 			await req.user.save();
 			// res.send('Logged out from this session successfully');
-			console.log(res.cookies);
+			// console.log(res.cookies);
 			res.clearCookie('userToken');
 			res.clearCookie('name');
 			// res.clearCookie('userType');
 			res.cookie('userType', 'guest');
 			// req.flash('userType', 'guest');
-			res.redirect('/homepage');
+			res.redirect('/');
 		} catch (error) {
 			// res.status(500).send(error.message);
 			req.flash('err', error.message);
-			res.redirect('/homepage');
+			res.redirect('/');
 		}
 	}
 

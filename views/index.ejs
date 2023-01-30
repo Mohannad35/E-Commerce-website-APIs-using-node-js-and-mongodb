@@ -32,7 +32,7 @@
             <li><a href="#">Contact</a></li>
             <% if (userType==='guest' ) { %>
               <li><a href="/login" style="font-weight: bold">Sign in</a></li>
-              <li><a href="#" style="font-weight: bold" >Sign up</a></li>
+              <li><a href="/sign-up" style="font-weight: bold" >Sign up</a></li>
               <% } else if (userType=='client' ) { %>
                 <li><a href="/sign-out" style="font-weight: bold">Sign out</a></li>
                 <li><a href="#" style="font-weight: bold">Cart</a></li>
@@ -50,13 +50,13 @@
       </div>
       <div class="navigation">
         <div class="nav-center container d-flex">
-          <a href="/homepage" class="logo">
+          <a href="/" class="logo">
             <h1>E-Commerce</h1>
           </a>
 
           <ul class="nav-list d-flex">
             <li class="nav-item">
-              <a href="/homepage" class="nav-link">Home</a>
+              <a href="/" class="nav-link">Home</a>
             </li>
             <li class="nav-item">
               <a href="#" class="nav-link">Shop</a>
