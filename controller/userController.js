@@ -50,9 +50,7 @@ class UserController {
 	static async logout(req, res) {
 		try {
 			// get the token for the current session to delete it
-			req.user.tokens = req.user.tokens.filter(token => {
-				return token.token !== req.token;
-			});
+			req.user.tokens = req.user.tokens.filter(T => T.token !== req.token);
 			await req.user.save();
 			// res.send('Logged out from this session successfully');
 			// console.log(res.cookies);
@@ -151,9 +149,7 @@ class UserController {
 	// delete phone number
 	static async delPhoneNumber(req, res) {
 		try {
-			req.user.phoneNumbers = req.user.phoneNumbers.filter(
-				phoneNumber => phoneNumber !== req.body.phoneNumber
-			);
+			req.user.phoneNumbers = req.user.phoneNumbers.filter(P => P !== req.body.phoneNumber);
 			await req.user.save();
 			res.send('deleted');
 		} catch (error) {

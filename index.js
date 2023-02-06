@@ -3,6 +3,7 @@ const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const flash = require('connect-flash');
+const dotenv = require('dotenv');
 
 const userRouter = require('./routes/UserRoute');
 const itemRouter = require('./routes/ItemRoute');
@@ -10,9 +11,9 @@ const cartRouter = require('./routes/CartRoute');
 const orderRouter = require('./routes/OrderRoute');
 const router = require('./routes/router');
 
-const dotenv = require('dotenv');
 dotenv.config();
 require('./config/db');
+
 const port = process.env.PORT || 3000;
 const app = express();
 
