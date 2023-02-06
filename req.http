@@ -1,2 +1,0 @@
-GET http://localhost:5000/users/showAll
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2M2IwYmMzNzIwMjc1MTQ0YWY2NzQ1MTMiLCJpYXQiOjE2NzI1MzE2MzB9.6b3i6YsvES5A69lz28ryppOmXptUEF8Pmj4fjBBpV04
