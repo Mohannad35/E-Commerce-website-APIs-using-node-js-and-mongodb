@@ -1,5 +1,6 @@
-const userModel = require('../model/User');
+const User = require('../model/user');
 const bcrypt = require('bcryptjs');
+const reqDebugger = require('debug')('app:request');
 
 class UserController {
 	// create a user account and return the user and the logged in token
@@ -7,21 +8,25 @@ class UserController {
 		try {
 			if (req.body.password !== req.body.repeatedPassword)
 				throw new Error('Password dose not match');
-			// console.log(req.body);
-			const user = new userModel({
+			const user = new User({
 				name: req.body.name,
 				email: req.body.email,
 				password: req.body.password,
+				phoneNumbers: [req.body.phoneNumber],
 			});
 			await user.save();
 			const token = await user.generateAuthToken();
+			reqDebugger(req.headers['user-agent']);
+			if (req.headers['user-agent'].match(/.*postman.*/i))
+				return res.status(201).send({ user, token });
 			res.cookie('name', user.name);
 			res.cookie('userToken', token);
 			res.cookie('userType', user.accountType);
 			res.redirect('/');
-			// res.status(201).send({ user, token });
 		} catch (error) {
-			// res.status(400).send(error.message);
+			reqDebugger(req.headers['user-agent']);
+			if (req.headers['user-agent'].match(/.*postman.*/i))
+				return res.status(400).send(error.message);
 			req.flash('err', error.message);
 			res.redirect('/sign-up');
 		}
@@ -30,17 +35,18 @@ class UserController {
 	// login a user and return the user logged in token
 	static async login(req, res) {
 		try {
-			// console.log(req.body, req.params, req.query);
-			const user = await userModel.findByCredentials(req.body.email, req.body.password);
+			const user = await User.findByCredentials(req.body.email, req.body.password);
 			const token = await user.generateAuthToken();
-			// res.send(token);
+			reqDebugger(req.headers['user-agent']);
+			if (req.headers['user-agent'].match(/.*postman.*/i)) return res.send(token);
 			res.cookie('name', user.name);
 			res.cookie('userToken', token);
 			res.cookie('userType', user.accountType);
-			// req.flash('userType', user.accountType);
 			res.redirect('/');
 		} catch (error) {
-			// res.status(400).send(error.message);
+			reqDebugger(req.headers['user-agent']);
+			if (req.headers['user-agent'].match(/.*postman.*/i))
+				return res.status(400).send(error.message);
 			req.flash('err', error.message);
 			res.redirect('/login');
 		}
@@ -49,19 +55,20 @@ class UserController {
 	// logout a user session (should return the logged out token?)
 	static async logout(req, res) {
 		try {
-			// get the token for the current session to delete it
+			// filter out the current token
 			req.user.tokens = req.user.tokens.filter(T => T.token !== req.token);
 			await req.user.save();
-			// res.send('Logged out from this session successfully');
-			// console.log(res.cookies);
+			reqDebugger(req.headers['user-agent']);
+			if (req.headers['user-agent'].match(/.*postman.*/i))
+				return res.send('Logged out from this session successfully');
 			res.clearCookie('userToken');
 			res.clearCookie('name');
-			// res.clearCookie('userType');
 			res.cookie('userType', 'guest');
-			// req.flash('userType', 'guest');
 			res.redirect('/');
 		} catch (error) {
-			// res.status(500).send(error.message);
+			reqDebugger(req.headers['user-agent']);
+			if (req.headers['user-agent'].match(/.*postman.*/i))
+				return res.status(500).send(error.message);
 			req.flash('err', error.message);
 			res.redirect('/');
 		}
@@ -84,7 +91,7 @@ class UserController {
 		try {
 			if (req.user.accountType !== 'admin')
 				throw new Error('you must be an administrator to see all users');
-			const users = await userModel.findAllUsers();
+			const users = await User.findAllUsers();
 			res.send(users);
 		} catch (error) {
 			res.status(400).send(error.message);
@@ -96,7 +103,7 @@ class UserController {
 		try {
 			if (req.user.accountType !== 'admin')
 				throw new Error('you must be an administrator to change account type');
-			const user = await userModel.setAccountType(req.body.id, req.body.type);
+			const user = await User.setAccountType(req.body.id, req.body.type);
 			res.send({ name: user.name, email: user.email, accountType: user.accountType });
 		} catch (error) {
 			res.status(400).send(error.message);

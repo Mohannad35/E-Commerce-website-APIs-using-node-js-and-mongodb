@@ -9,40 +9,28 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 			trim: true,
-			lowercase: true,
-			validate(value) {
-				if (!value.match(/^[A-Za-z][A-Za-z0-9_]{2,29}$/g)) {
-					throw new Error(
-						'{VALUE} must contain only alphanumeric characters or underscores with length (3,30)'
-					);
-				}
-			},
+			minLength: 3,
+			maxlength: 255,
+			match: /^[A-Za-z]\w+/g,
 		},
 		email: {
 			type: String,
 			required: true,
 			unique: true,
 			lowercase: true,
-			validate(value) {
-				if (!validator.isEmail(value)) {
-					throw new Error('Email is invalid');
-				}
+			validate: {
+				validator: function (value) {
+					return validator.isEmail(value);
+				},
+				message: 'Invalid email address',
 			},
 		},
+		// Use Joi to check the input password
+		// (conflicts btw .pre function and this validation which runs first).
 		password: {
 			type: String,
 			required: true,
-			minLength: 7,
-			trim: true,
-			// validate(value) {
-			// 	// To check a password between 8 to 15 characters which contain at least one
-			// 	// lowercase letter, one uppercase letter, one numeric digit, and one special character
-			// 	if (!value.match(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/g)) {
-			// 		throw new Error(
-			// 			"{VALUE} must contain at least one lowercase letter, one uppercase letter, one numeric digit, and one special character length(8,30)"
-			// 		);
-			// 	}
-			// },
+			minLength: 4,
 		},
 		accountType: {
 			type: String,
@@ -50,27 +38,18 @@ const userSchema = new mongoose.Schema(
 			default: 'client',
 			enum: {
 				values: ['admin', 'vendor', 'client'],
-				message: '{VALUE} is not valid must be admin, or vendor, or client',
+				message: '{VALUE} is not valid. Must be admin, vendor, or client',
 			},
 		},
+		// Use Joi to check the input phone numbers
 		phoneNumbers: {
-			type: [String],
-			minlength: 10,
-			maxlength: 12,
-			// required: [true, 'User phone number required'],
-			// validate: {
-			// 	validator: function (value) {
-			// 		return !value.match(/01[0125]\d{8}/.g);
-			// 	},
-			// 	message: props => `${props.value} is not a valid phone number!`,
-			// },
-			// validate(value) {
-			// 	// console.log(value);
-			// 	// console.log(value[value.length - 1]);
-			// 	if (!value[value.length - 1].match(/^01[0125]\d{8}$/g)) {
-			// 		throw new Error(`${value[value.length - 1]} is not a valid phone number!`);
-			// 	}
-			// },
+			type: Array,
+			validate: {
+				validator: function (v) {
+					return v.length > 0;
+				},
+				message: 'A user must have at least one phone number',
+			},
 		},
 		tokens: [
 			{

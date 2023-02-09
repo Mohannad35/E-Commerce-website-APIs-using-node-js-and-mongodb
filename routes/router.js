@@ -1,8 +1,8 @@
 const router = require('express').Router();
 const Auth = require('../middleware/auth');
-const UserController = require('../controller/UserController');
-const flash = require('connect-flash');
-const User = require('../model/User');
+const UserController = require('../controller/user');
+// const flash = require('connect-flash');
+const User = require('../model/user');
 
 /** GET /  Home Page */
 router.get('/', (req, res) => {

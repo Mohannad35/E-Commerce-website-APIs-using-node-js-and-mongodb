@@ -1,5 +1,5 @@
-const Cart = require('../model/Cart');
-const Item = require('../model/Item');
+const Cart = require('../model/cart');
+const Item = require('../model/item');
 
 class CartController {
 	// get all the items in a user cart from the Database and return them as JSON

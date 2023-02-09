@@ -1,5 +1,5 @@
-const Item = require("../model/Item");
-const User = require("../model/User");
+const Item = require('../model/item');
+const User = require('../model/user');
 
 class ItemController {
 	// get all items from database and return them as JSON objects
@@ -18,8 +18,9 @@ class ItemController {
 	// get item by id from database and return it as JSON object
 	static async getOneItem(req, res) {
 		try {
-			const item = await Item.findOne({ _id: req.query.id });
-			if (!item) res.status(404).send({ error: "Item not found" });
+			// next line need to be checked for a better error message
+			const item = await Item.findOne({ _id: req.params.id }).catch(error => console.log());
+			if (!item) return res.status(404).send('Item not found');
 			const user = await User.findOne({ _id: item.owner });
 			res.status(200).send({
 				name: item.name,
@@ -37,8 +38,8 @@ class ItemController {
 	// add new item to Database
 	static async addItem(req, res) {
 		try {
-			if (req.user.accountType !== "vendor" && req.user.accountType !== "admin")
-				throw new Error("only vendors and admins can add items");
+			if (req.user.accountType !== 'vendor' && req.user.accountType !== 'admin')
+				throw new Error('only vendors and admins can add items');
 			const newItem = new Item({
 				...req.body,
 				owner: req.user._id,
@@ -62,14 +63,14 @@ class ItemController {
 	// (ex: update an item name or price or both)
 	static async updateItem(req, res) {
 		const updates = Object.keys(req.body);
-		const allowedUpdates = ["name", "description", "category", "price", "quantity"];
+		const allowedUpdates = ['name', 'description', 'category', 'price', 'quantity'];
 		const isValidOperation = updates.every(update => allowedUpdates.includes(update));
-		if (!isValidOperation) return res.status(400).send({ error: "invalid updates" });
+		if (!isValidOperation) return res.status(400).send({ error: 'invalid updates' });
 		try {
 			const item = await Item.findOne({ _id: req.params.id });
-			if (!item) return res.status(404).send("item not found");
-			if (req.user.accountType !== "admin" && req.user._id !== item.owner)
-				throw new Error("you are not allowed to edit this item");
+			if (!item) return res.status(404).send('item not found');
+			if (req.user.accountType !== 'admin' && req.user._id !== item.owner)
+				throw new Error('you are not allowed to edit this item');
 			updates.forEach(update => (item[update] = req.body[update]));
 			await item.save();
 			res.send(item);
@@ -82,9 +83,9 @@ class ItemController {
 	static async deleteItem(req, res) {
 		try {
 			const deletedItem = await Item.findOne({ _id: req.params.id });
-			if (!deletedItem) return res.status(404).send({ error: "Item not found" });
-			if (req.user.accountType !== "admin" && req.user._id !== deletedItem.owner)
-				throw new Error("you are not allowed to delete this item");
+			if (!deletedItem) return res.status(404).send({ error: 'Item not found' });
+			if (req.user.accountType !== 'admin' && req.user._id !== deletedItem.owner)
+				throw new Error('you are not allowed to delete this item');
 			await Item.deleteOne({ _id: req.params.id });
 			res.send(deletedItem);
 		} catch (error) {

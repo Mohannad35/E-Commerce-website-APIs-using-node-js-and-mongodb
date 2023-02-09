@@ -1,14 +1,16 @@
-const path = require('path');
 const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const flash = require('connect-flash');
 const dotenv = require('dotenv');
+const startupDebugger = require('debug')('app:startup');
+const morgan = require('morgan');
+// const helmet = require('helmet');
 
-const userRouter = require('./routes/UserRoute');
-const itemRouter = require('./routes/ItemRoute');
-const cartRouter = require('./routes/CartRoute');
-const orderRouter = require('./routes/OrderRoute');
+const userRouter = require('./routes/user');
+const itemRouter = require('./routes/item');
+const cartRouter = require('./routes/cart');
+const orderRouter = require('./routes/order');
 const router = require('./routes/router');
 
 dotenv.config();
@@ -29,6 +31,11 @@ app.use(
 	})
 );
 app.use(flash());
+// app.use(helmet());
+if (app.get('env') === 'development') {
+	app.use(morgan('combined'));
+	startupDebugger('Morgan enabled...');
+}
 
 // Setting ejs as the used templating engine to create dynamic website content
 app.set('view engine', 'ejs');
@@ -39,10 +46,10 @@ app.use('/css', express.static(__dirname + 'views/css'));
 app.use('/img', express.static(__dirname + 'views/images'));
 app.use('/js', express.static(__dirname + 'views/js'));
 
-app.use(userRouter);
-app.use(itemRouter);
-app.use(cartRouter);
-app.use(orderRouter);
+app.use('/users', userRouter);
+app.use('/items', itemRouter);
+app.use('/cart', cartRouter);
+app.use('/order', orderRouter);
 app.use(router);
 
-app.listen(port, () => console.log(`Listening on port ${port}...`));
+app.listen(port, () => startupDebugger(`Listening on port ${port}...`));

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const ObjectID = mongoose.Schema.Types.ObjectId;
 
 const itemSchema = new mongoose.Schema(
@@ -6,7 +6,7 @@ const itemSchema = new mongoose.Schema(
 		owner: {
 			type: ObjectID,
 			required: true,
-			ref: "User",
+			ref: 'User',
 		},
 		name: {
 			type: String,
@@ -14,7 +14,7 @@ const itemSchema = new mongoose.Schema(
 			trim: true,
 			validate(value) {
 				if (!value.match(/^[A-Za-z][A-Za-z0-9 ]{3,29}$/g)) {
-					throw new Error("{VALUE} must contain only alphanumeric characters with length (8,30)");
+					throw new Error('{VALUE} must contain only alphanumeric characters with length (8,30)');
 				}
 			},
 		},
@@ -42,5 +42,5 @@ const itemSchema = new mongoose.Schema(
 	}
 );
 
-const Item = mongoose.model("Item", itemSchema);
+const Item = mongoose.model('Item', itemSchema);
 module.exports = Item;
