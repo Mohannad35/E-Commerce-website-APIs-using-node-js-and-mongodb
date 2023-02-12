@@ -1,27 +1,25 @@
 const mongoose = require('mongoose');
-const ObjectID = mongoose.Schema.Types.ObjectId;
 
 const itemSchema = new mongoose.Schema(
 	{
 		owner: {
-			type: ObjectID,
-			required: true,
+			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
+			required: true,
 		},
 		name: {
 			type: String,
 			required: true,
 			trim: true,
-			validate(value) {
-				if (!value.match(/^[A-Za-z][A-Za-z0-9 ]{3,29}$/g)) {
-					throw new Error('{VALUE} must contain only alphanumeric characters with length (8,30)');
-				}
-			},
+			minLength: 3,
+			maxLength: 255,
+			match: /^[A-Za-z][A-Za-z0-9 ]{3,255}$/g,
 		},
 		description: {
 			type: String,
 			required: true,
 		},
+		// should we make a category collection?
 		category: {
 			type: String,
 			required: true,
@@ -30,11 +28,15 @@ const itemSchema = new mongoose.Schema(
 			type: Number,
 			required: true,
 			min: 0,
+			get: v => (Math.round(v * 100) / 100).toFixed(2),
+			set: v => (Math.round(v * 100) / 100).toFixed(2),
 		},
 		quantity: {
 			type: Number,
 			required: true,
 			min: 0,
+			get: v => Math.round(v),
+			set: v => Math.round(v),
 		},
 	},
 	{

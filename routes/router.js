@@ -1,12 +1,12 @@
-const router = require('express').Router();
 const Auth = require('../middleware/auth');
 const UserController = require('../controller/user');
-// const flash = require('connect-flash');
 const User = require('../model/user');
+const frontDebugger = require('debug')('app:frontend');
+const router = require('express').Router();
 
 /** GET /  Home Page */
 router.get('/', (req, res) => {
-	// console.log(req.cookies);
+	frontDebugger(req.cookies);
 	// Get name and type from cookies if any and pass them to the home page.
 	// If empty, we won't display name and set type to guest to be handled by EJS.
 	const name = req.cookies.name ? req.cookies.name : '';
@@ -46,7 +46,6 @@ router.get('/user-form', async (req, res) => {
 		const email = user.email;
 		res.render('user_form', { name, email, userType });
 	} catch (error) {
-		// res.status(500).send(error.message);
 		req.flash('err', error.message);
 		res.redirect('/');
 	}

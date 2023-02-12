@@ -1,8 +1,6 @@
-const express = require('express');
 const Auth = require('../middleware/auth');
 const ItemController = require('../controller/item');
-
-const router = express.Router();
+const router = require('express').Router();
 
 // fetch all items
 router.get('/', ItemController.getAllItems);

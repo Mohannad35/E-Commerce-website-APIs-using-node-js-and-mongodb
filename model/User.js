@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
 			required: true,
 			trim: true,
 			minLength: 3,
-			maxlength: 255,
+			maxLength: 255,
 			match: /^[A-Za-z]\w+/g,
 		},
 		email: {
@@ -25,12 +25,11 @@ const userSchema = new mongoose.Schema(
 				message: 'Invalid email address',
 			},
 		},
-		// Use Joi to check the input password
 		// (conflicts btw .pre function and this validation which runs first).
 		password: {
 			type: String,
 			required: true,
-			minLength: 4,
+			minLength: 8,
 		},
 		accountType: {
 			type: String,
@@ -41,7 +40,6 @@ const userSchema = new mongoose.Schema(
 				message: '{VALUE} is not valid. Must be admin, vendor, or client',
 			},
 		},
-		// Use Joi to check the input phone numbers
 		phoneNumbers: {
 			type: Array,
 			validate: {
@@ -53,6 +51,7 @@ const userSchema = new mongoose.Schema(
 		},
 		tokens: [
 			{
+				_id: false,
 				token: {
 					type: String,
 					required: true,
@@ -87,7 +86,7 @@ userSchema.methods.generateAuthToken = async function () {
 
 // used to set accountType
 userSchema.statics.setAccountType = async function (id, type) {
-	const user = await User.findOne({ _id: id });
+	const user = await User.findById(id);
 	user.accountType = type;
 	await user.save();
 	return user;
@@ -100,13 +99,6 @@ userSchema.statics.findByCredentials = async (email, password) => {
 	const isMatch = await bcrypt.compare(password, user.password);
 	if (!isMatch) throw new Error('Unable to login (Password is incorrect)');
 	return user;
-};
-
-// used in show all users
-userSchema.statics.findAllUsers = async () => {
-	const users = await User.find({}, { _id: 0, name: 1, accountType: 1 });
-	if (!users) throw new Error('Database is empty!)');
-	return users;
 };
 
 const User = mongoose.model('User', userSchema);

@@ -1,15 +1,22 @@
 const Item = require('../model/item');
-const User = require('../model/user');
+const Validator = require('../middleware/Validator');
+const itemDebugger = require('debug')('app:item');
 
 class ItemController {
 	// get all items from database and return them as JSON objects
 	static async getAllItems(req, res) {
 		try {
-			const items = await Item.find(
-				{},
-				{ owner: 1, name: 1, description: 1, category: 1, price: 1, quantity: 1 }
-			);
-			res.status(200).send(items);
+			itemDebugger(req.headers['user-agent']);
+			const pageNumber = req.query.pageNumber ? req.query.pageNumber : 1;
+			const pageSize = req.query.pageSize ? req.query.pageSize : 10;
+			const items = await Item.find()
+				.populate('owner', '-_id name')
+				.select('owner name description category price quantity')
+				.skip((pageNumber - 1) * pageSize)
+				.limit(pageSize)
+				.sort('name');
+			const itemsCount = await Item.find().count();
+			res.status(200).send({ pageLength: items.length, totalLength: itemsCount, items });
 		} catch (error) {
 			res.status(400).send(error.message);
 		}
@@ -18,18 +25,14 @@ class ItemController {
 	// get item by id from database and return it as JSON object
 	static async getOneItem(req, res) {
 		try {
-			// next line need to be checked for a better error message
-			const item = await Item.findOne({ _id: req.params.id }).catch(error => console.log());
+			itemDebugger(req.headers['user-agent']);
+			const { error } = Validator.validateItemId(req.params);
+			if (error) throw new Error(error.details[0].message);
+			const item = await Item.findById(req.params.id)
+				.populate('owner', 'name')
+				.select('owner name description category price quantity');
 			if (!item) return res.status(404).send('Item not found');
-			const user = await User.findOne({ _id: item.owner });
-			res.status(200).send({
-				name: item.name,
-				description: item.description,
-				category: item.category,
-				price: item.price,
-				quantity: item.quantity,
-				owner: user.name,
-			});
+			res.status(200).send(item);
 		} catch (error) {
 			res.status(400).send(error.message);
 		}
@@ -38,42 +41,42 @@ class ItemController {
 	// add new item to Database
 	static async addItem(req, res) {
 		try {
+			itemDebugger(req.headers['user-agent']);
 			if (req.user.accountType !== 'vendor' && req.user.accountType !== 'admin')
 				throw new Error('only vendors and admins can add items');
-			const newItem = new Item({
+			const { error } = Validator.validateNewItem(req.body);
+			if (error) throw new Error(error.details[0].message);
+			let newItem = new Item({
 				...req.body,
 				owner: req.user._id,
 			});
 			await newItem.save();
-			res.status(201).send({
-				id: newItem._id,
-				name: newItem.name,
-				description: newItem.description,
-				category: newItem.category,
-				price: newItem.price,
-				quantity: newItem.quantity,
-				owner: req.user.name,
-			});
+			newItem = await Item.findById(newItem._id)
+				.populate('owner', 'name')
+				.select('owner name description category price quantity');
+			res.status(201).send({ message: 'item added', item: newItem });
 		} catch (error) {
 			res.status(400).send(error.message);
 		}
 	}
 
-	// update item in Database with recived body object
-	// (ex: update an item name or price or both)
 	static async updateItem(req, res) {
-		const updates = Object.keys(req.body);
-		const allowedUpdates = ['name', 'description', 'category', 'price', 'quantity'];
-		const isValidOperation = updates.every(update => allowedUpdates.includes(update));
-		if (!isValidOperation) return res.status(400).send({ error: 'invalid updates' });
 		try {
-			const item = await Item.findOne({ _id: req.params.id });
+			itemDebugger(req.headers['user-agent']);
+			// validate req params
+			const { error: errorId } = Validator.validateItemId(req.params);
+			if (errorId) throw new Error(errorId.details[0].message);
+			// validate req body
+			const { error } = Validator.validateUpdateItem(req.body);
+			if (error) throw new Error(error.details[0].message);
+			const updates = Object.keys(req.body);
+			const item = await Item.findById(req.params.id);
 			if (!item) return res.status(404).send('item not found');
-			if (req.user.accountType !== 'admin' && req.user._id !== item.owner)
+			if (!(req.user.accountType === 'admin' || item.owner.equals(req.user._id)))
 				throw new Error('you are not allowed to edit this item');
 			updates.forEach(update => (item[update] = req.body[update]));
 			await item.save();
-			res.send(item);
+			res.send({ message: 'item updated', item: item });
 		} catch (error) {
 			res.status(400).send(error.message);
 		}
@@ -82,12 +85,15 @@ class ItemController {
 	// delete item from Database with recived _id and return the deleted item
 	static async deleteItem(req, res) {
 		try {
-			const deletedItem = await Item.findOne({ _id: req.params.id });
-			if (!deletedItem) return res.status(404).send({ error: 'Item not found' });
-			if (req.user.accountType !== 'admin' && req.user._id !== deletedItem.owner)
+			itemDebugger(req.headers['user-agent']);
+			const { error: errorId } = Validator.validateItemId(req.params);
+			if (errorId) throw new Error(errorId.details[0].message);
+			const item = await Item.findById(req.params.id);
+			if (!item) return res.status(404).send('Item not found');
+			if (!(req.user.accountType === 'admin' || item.owner.equals(req.user._id)))
 				throw new Error('you are not allowed to delete this item');
-			await Item.deleteOne({ _id: req.params.id });
-			res.send(deletedItem);
+			const deletedItem = await Item.findByIdAndDelete(req.params.id);
+			res.send({ message: 'item deleted', item: deletedItem });
 		} catch (error) {
 			res.status(400).send(error.message);
 		}
