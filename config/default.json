@@ -1,0 +1,7 @@
+{
+	"jwtPrivateKey": "",
+	"mongodb_url": "",
+	"logtailSourceToken": "",
+	"port": "",
+	"env": ""
+}

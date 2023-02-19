@@ -1,20 +1,22 @@
-const Auth = require('../middleware/auth');
+const auth = require('../middleware/auth');
+const isVendor = require('../middleware/vendor');
 const ItemController = require('../controller/item');
 const router = require('express').Router();
+const validateObjectId = require('../middleware/validateObjectId');
 
 // fetch all items
 router.get('/', ItemController.getAllItems);
 
 // fetch an item
-router.get('/:id', ItemController.getOneItem);
+router.get('/:id', validateObjectId, ItemController.getOneItem);
 
 // create an item
-router.post('/', Auth, ItemController.addItem);
+router.post('/', auth, isVendor, ItemController.addItem);
 
 // update an item
-router.patch('/:id', Auth, ItemController.updateItem);
+router.patch('/:id', auth, isVendor, validateObjectId, ItemController.updateItem);
 
-// delete item (need to check if the user has admin permissions or he's the owner of the item)
-router.delete('/:id', Auth, ItemController.deleteItem);
+// delete item
+router.delete('/:id', auth, isVendor, validateObjectId, ItemController.deleteItem);
 
 module.exports = router;

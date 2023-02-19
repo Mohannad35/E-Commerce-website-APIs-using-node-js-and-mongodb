@@ -1,6 +1,8 @@
-const Auth = require('../middleware/auth');
+const auth = require('../middleware/auth');
+const isAdmin = require('../middleware/admin');
 const UserController = require('../controller/user');
 const router = require('express').Router();
+const validateObjectId = require('../middleware/validateObjectId');
 
 // signup
 router.post('/signup', UserController.signup);
@@ -9,27 +11,33 @@ router.post('/signup', UserController.signup);
 router.post('/login', UserController.login);
 
 // logout
-router.post('/logout', Auth, UserController.logout);
+router.post('/logout', auth, UserController.logout);
 
 // logout all
-router.post('/logoutAll', Auth, UserController.logoutAll);
-
-// show all users (will check later that the user has admin permissions)
-router.get('/showAll', Auth, UserController.showAllUsers);
+router.post('/logoutAll', auth, UserController.logoutAll);
 
 // edit user information
-router.post('/user', Auth, UserController.editInfo);
+router.post('/me', auth, UserController.editInfo);
 
 // change user password
-router.post('/user/changePassword', Auth, UserController.changePassword);
+router.post('/me/changePassword', auth, UserController.changePassword);
+
+// show all users (will check later that the user has admin permissions)
+router.get('/', auth, isAdmin, UserController.showAllUsers);
 
 // change user account type
-router.post('/user/changeAccountType', Auth, UserController.changeAccountType);
+router.post(
+	'/changeAccountType',
+	auth,
+	isAdmin,
+	validateObjectId,
+	UserController.changeAccountType
+);
 
 // add new phone number
-router.post('/user/phoneNumbers', Auth, UserController.addPhoneNumber);
+router.post('/me/phoneNumbers', auth, UserController.addPhoneNumber);
 
 // delete a phone number
-router.post('/user/phoneNumbers/delete', Auth, UserController.delPhoneNumber);
+router.delete('/me/phoneNumbers', auth, UserController.delPhoneNumber);
 
 module.exports = router;

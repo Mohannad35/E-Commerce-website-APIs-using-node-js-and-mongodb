@@ -1,157 +1,153 @@
 const Joi = require('joi');
+const passwordComplexity = require('joi-password-complexity');
+
+const complexityOptions = {
+	min: 8,
+	max: 30,
+	lowerCase: 1,
+	upperCase: 1,
+	numeric: 1,
+	symbol: 1,
+	requirementCount: 3
+};
+const joiName = Joi.string()
+	.min(3)
+	.max(255)
+	.pattern(/^[A-Za-z][A-Za-z0-9 ]{2,255}$/)
+	.message('name should start with a letter and minimum length of 3');
+const joiEmail = Joi.string().email().message('{:[.]} is not a valid email address');
+const joiPhoneNumber = Joi.string()
+	.pattern(/^([\+][2])?[0][1][0125][0-9]{8}$/)
+	.message('{:[.]} is not a valid phone number');
+const joiAccountType = Joi.string().valid('client', 'admin', 'vendor');
+const joiDescription = Joi.string().min(3).max(1024);
+const joiCategory = Joi.string().min(3).max(255);
+const joiPrice = Joi.number().positive();
+const joiQuantity = Joi.number().integer().positive();
 
 class Validator {
-	// validate a new user account and return the result
+	// user validation
 	static validateNewAccount(account) {
 		const Schema = Joi.object({
-			name: Joi.string()
-				.min(3)
-				.max(255)
-				.pattern(/^[A-Za-z]\w+/)
-				.required(),
-			email: Joi.string().email().required(),
-			password: Joi.string()
-				.min(8)
-				.max(30)
-				.pattern(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,30}$/)
-				.required(),
-			repeatedPassword: Joi.string().equal(Joi.ref('password')),
-			phoneNumber: Joi.string()
-				.pattern(/^([\+][2])?[0][1][0125][0-9]{8}$/)
-				.required(),
+			name: joiName.required(),
+			email: joiEmail.required(),
+			phoneNumber: joiPhoneNumber.required(),
+			password: passwordComplexity(complexityOptions, 'Password').required(),
+			confirmPassword: Joi.any()
+				.label('Confirm password')
+				.equal(Joi.ref('password'))
+				.messages({ 'any.only': `{{#label}} doesn't match` })
+				.required()
 		});
-		return Schema.validate(account);
+		const { error } = Schema.validate(account, { convert: false });
+		if (error) return error.details[0].message;
+		return false;
 	}
 
 	static validateLogin(account) {
 		const Schema = Joi.object({
-			email: Joi.string().email().required(),
-			password: Joi.string(),
+			email: joiEmail.required(),
+			password: Joi.string().required()
 		});
-		return Schema.validate(account);
+		const { error } = Schema.validate(account, { convert: false });
+		if (error) return error.details[0].message;
+		return false;
 	}
 
 	static validateAccountType(account) {
 		const Schema = Joi.object({
-			id: Joi.objectId().required(),
-			type: Joi.string().allow('client', 'admin', 'vendor').required(),
+			type: joiAccountType.required()
 		});
-		return Schema.validate(account);
+		const { error } = Schema.validate(account, { convert: false });
+		if (error) return error.details[0].message;
+		return false;
 	}
 
 	static validateUserInfo(account) {
 		const Schema = Joi.object({
-			name: Joi.string()
-				.min(3)
-				.max(255)
-				.pattern(/^[A-Za-z]\w+/),
-			email: Joi.string().email(),
+			name: joiName,
+			email: joiEmail
 		}).or('name', 'email');
-		return Schema.validate(account);
+		const { error } = Schema.validate(account, { convert: false });
+		if (error) return error.details[0].message;
+		return false;
 	}
 
 	static validatePassword(account) {
 		const Schema = Joi.object({
 			oldPassword: Joi.string().required(),
-			newPassword: Joi.string()
-				.min(8)
-				.max(30)
-				.pattern(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,30}$/)
-				.required(),
+			newPassword: passwordComplexity(complexityOptions, 'Password').required()
 		});
-		return Schema.validate(account);
+		const { error } = Schema.validate(account, { convert: false });
+		if (error) return error.details[0].message;
+		return false;
 	}
 
 	static validatePhoneNumber(account) {
 		const Schema = Joi.object({
-			phoneNumber: Joi.string()
-				.pattern(/^([\+][2])?[0][1][0125][0-9]{8}$/)
-				.required(),
+			phoneNumber: joiPhoneNumber.required()
 		});
-		return Schema.validate(account);
+		const { error } = Schema.validate(account, { convert: false });
+		if (error) return error.details[0].message;
+		return false;
 	}
 
+	// item validation
 	static validateNewItem(item) {
 		const Schema = Joi.object({
-			name: Joi.string()
-				.min(3)
-				.max(255)
-				.pattern(/^[A-Za-z][A-Za-z0-9 ]{3,255}$/)
-				.required(),
-			description: Joi.string().max(1000).required(),
-			category: Joi.string().max(255).required(),
-			price: Joi.number().positive().precision(2).required(),
-			quantity: Joi.number().integer().positive().required(),
+			name: joiName.required(),
+			description: joiDescription.required(),
+			category: joiCategory.required(),
+			price: joiPrice.required(),
+			quantity: joiQuantity.required()
 		});
-		return Schema.validate(item);
-	}
-
-	static validateItemId(item) {
-		const Schema = Joi.object({
-			id: Joi.objectId().required(),
-		});
-		return Schema.validate(item);
+		const { error } = Schema.validate(item, { convert: false });
+		if (error) return error.details[0].message;
+		return false;
 	}
 
 	static validateUpdateItem(item) {
 		const Schema = Joi.object({
-			name: Joi.string()
-				.min(3)
-				.max(255)
-				.pattern(/^[A-Za-z][A-Za-z0-9 ]{3,255}$/),
-			description: Joi.string().alphanum().max(255),
-			category: Joi.string().alphanum().max(255),
-			price: Joi.number().positive().precision(2),
-			quantity: Joi.number().integer().positive(),
+			name: joiName,
+			description: joiDescription,
+			category: joiCategory,
+			price: joiPrice,
+			quantity: joiQuantity
 		}).or('name', 'description', 'category', 'price', 'quantity');
-		return Schema.validate(item);
+		const { error } = Schema.validate(item, { convert: false });
+		if (error) return error.details[0].message;
+		return false;
 	}
 
+	// cart validation
 	static validateCart(cart) {
 		const Schema = Joi.object({
-			itemId: Joi.objectId().required(),
-			quantity: Joi.number().integer().positive().required(),
+			quantity: joiQuantity.required()
 		});
-		return Schema.validate(cart);
+		const { error } = Schema.validate(cart, { convert: false });
+		if (error) return error.details[0].message;
+		return false;
 	}
 
 	static validateQuantity(cart) {
 		const Schema = Joi.object({
-			quantity: Joi.number().integer().positive().required(),
+			quantity: joiQuantity
 		});
-		return Schema.validate(cart);
+		const { error } = Schema.validate(cart, { convert: false });
+		if (error) return error.details[0].message;
+		return false;
 	}
 
-	static validateCartId(cart) {
-		const Schema = Joi.object({
-			itemId: Joi.objectId().required(),
-		});
-		return Schema.validate(cart);
-	}
-
-	static validateOrderId(order) {
-		const Schema = Joi.object({
-			id: Joi.objectId().required(),
-		});
-		return Schema.validate(order);
-	}
-
-	static validateOrderStatus(order) {
-		const Schema = Joi.object({
-			status: Joi.string().allow('pickup', 'shipped').required(),
-		});
-		return Schema.validate(order);
-	}
-
-	static validateOrder(cart) {
+	// order validation
+	static validateOrder(order) {
 		const Schema = Joi.object({
 			paymentMethod: Joi.string().allow('cash', 'credit card'),
-			contactPhone: Joi.string()
-				.pattern(/^([\+][2])?[0][1][0125][0-9]{8}$/)
-				.required(),
-			address: Joi.string().min(3).max(1000).required(),
+			contactPhone: joiPhoneNumber.required(),
+			address: Joi.string().min(3).max(1024).required()
 		});
-		return Schema.validate(cart);
+		const { error } = Schema.validate(order, { convert: false });
+		if (error) return error.details[0].message;
+		return false;
 	}
 }
 

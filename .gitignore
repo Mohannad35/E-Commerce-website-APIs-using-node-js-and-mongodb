@@ -1,3 +1,5 @@
 node_modules/
-req.http
+coverage/
 .env
+notes.txt
+testing.log

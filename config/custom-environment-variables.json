@@ -1,0 +1,7 @@
+{
+	"jwtPrivateKey": "ecommerce_jwtPrivateKey",
+	"mongodb_url": "MONGODB_URL",
+	"logtailSourceToken": "LOGTAIL_SOURCE_TOKEN",
+	"port": "PORT",
+	"env": "NODE_ENV"
+}

@@ -1,17 +1,15 @@
 const Auth = require('../middleware/auth');
 const CartController = require('../controller/cart');
 const router = require('express').Router();
+const validateObjectId = require('../middleware/validateObjectId');
 
 // get cart items
 router.get('/', Auth, CartController.getCartItems);
 
 // create cart or add items to it
-router.post('/', Auth, CartController.addCart);
+router.post('/:id', Auth, validateObjectId, CartController.addCart);
 
-// delete item in cart
-router.delete('/', Auth, CartController.deleteItemInCart);
-
-// reduce item quantity in cart
-router.put('/', Auth, CartController.reduceItemInCart);
+// reduce item quantity in cart or remove it from cart
+router.delete('/:id', Auth, validateObjectId, CartController.reduceItemInCart);
 
 module.exports = router;

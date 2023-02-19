@@ -1,0 +1,7 @@
+{
+	"jwtPrivateKey": "12345",
+	"mongodb_url": "mongodb://127.0.0.1:27017/EcommerceDB_tests",
+	"logtailSourceToken": "rmAWd7FARGXMjci6DBakefqH",
+	"port": "5001",
+	"env": "test"
+}
