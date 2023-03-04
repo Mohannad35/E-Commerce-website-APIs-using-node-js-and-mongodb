@@ -24,7 +24,8 @@ module.exports = function (app) {
 						url: tokens.url(req, res),
 						status: Number.parseFloat(tokens.status(req, res)),
 						content_length: tokens.res(req, res, 'content-length'),
-						response_time: Number.parseFloat(tokens['response-time'](req, res))
+						response_time: Number.parseFloat(tokens['response-time'](req, res)),
+						user_agent: tokens.res(req, res, 'user-agent')
 					});
 				},
 				{

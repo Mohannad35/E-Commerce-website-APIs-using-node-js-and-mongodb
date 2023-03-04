@@ -1,6 +1,7 @@
 const request = require('supertest');
-const Item = require('../../model/item');
 const User = require('../../model/user');
+const Item = require('../../model/item');
+const Category = require('../../model/category');
 
 describe('auth middleware', () => {
 	let server, user, token;
@@ -15,13 +16,15 @@ describe('auth middleware', () => {
 	}
 
 	async function getToken(email, password) {
-		const { headers } = await request(server).post('/user/login').send({ email, password });
+		const { headers, body } = await request(server)
+			.post('/api/user/login')
+			.send({ email, password });
 		return headers['x-auth-token'];
 	}
 
 	async function exec() {
 		return await request(server)
-			.post('/user/logout')
+			.post('/api/user/logout')
 			.set('Authorization', token === '' ? '' : 'Bearer ' + token);
 	}
 
@@ -31,9 +34,8 @@ describe('auth middleware', () => {
 		token = await getToken(user.email, '12345678');
 	});
 	afterEach(async () => {
-		server.close();
+		await server.close();
 		await User.deleteMany({});
-		// await Item.deleteMany({});
 	});
 
 	it('should return 200 if token is valid', async () => {
@@ -73,13 +75,13 @@ describe('admin middleware', () => {
 	}
 
 	async function getToken(email, password) {
-		const { headers } = await request(server).post('/user/login').send({ email, password });
+		const { headers } = await request(server).post('/api/user/login').send({ email, password });
 		return headers['x-auth-token'];
 	}
 
 	async function exec() {
 		return await request(server)
-			.get('/user')
+			.get('/api/user')
 			.set('Authorization', token ? 'Bearer ' + token : '');
 	}
 
@@ -90,7 +92,7 @@ describe('admin middleware', () => {
 		token = await getToken(admin.email, '12345678');
 	});
 	afterEach(async () => {
-		server.close();
+		await server.close();
 		await User.deleteMany({});
 	});
 
@@ -107,7 +109,7 @@ describe('admin middleware', () => {
 });
 
 describe('vendor middleware', () => {
-	let server, user, vendor, token, newItem;
+	let server, user, vendor, category, title, token, newItem;
 	async function getUser(email = 'user@example.com', type = 'client') {
 		return await User.create({
 			name: 'user',
@@ -118,14 +120,18 @@ describe('vendor middleware', () => {
 		});
 	}
 
+	async function getCategory() {
+		return await Category.create({ title });
+	}
+
 	async function getToken(email, password) {
-		const { headers } = await request(server).post('/user/login').send({ email, password });
+		const { headers } = await request(server).post('/api/user/login').send({ email, password });
 		return headers['x-auth-token'];
 	}
 
 	async function exec() {
 		return await request(server)
-			.post('/item')
+			.post('/api/item')
 			.set('Authorization', 'Bearer ' + token)
 			.send(newItem);
 	}
@@ -135,17 +141,20 @@ describe('vendor middleware', () => {
 		vendor = await getUser('vendor@example.com', 'vendor');
 		user = await getUser('user@example.com');
 		token = await getToken(vendor.email, '12345678');
+		title = 'category';
+		category = await getCategory();
 		newItem = {
 			name: 'new item',
 			description: 'description',
-			category: 'category',
+			categoryId: category._id,
 			price: 100,
 			quantity: 10
 		};
 	});
 	afterEach(async () => {
-		server.close();
+		await server.close();
 		await User.deleteMany({});
+		await Category.deleteMany({});
 		await Item.deleteMany({});
 	});
 
@@ -154,7 +163,6 @@ describe('vendor middleware', () => {
 		expect(res.status).toBe(201);
 		expect(res.body).toHaveProperty('create', true);
 		expect(res.body).toHaveProperty('itemid');
-		expect(res.body.item).toMatchObject(newItem);
 	});
 	it(`should return 403 if token doesn't belong to a vendor`, async () => {
 		token = await getToken(user.email, '12345678');

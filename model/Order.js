@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const Item = require('./item');
+const Cart = require('./cart');
 
 const orderSchema = new mongoose.Schema(
 	{
@@ -54,21 +56,17 @@ const orderSchema = new mongoose.Schema(
 					trim: true,
 					minLength: 3,
 					maxLength: 255,
-					match: /^[A-Za-z][A-Za-z0-9 ]{3,255}$/g
+					match: /^[A-Za-z].*/
 				},
 				quantity: {
 					type: Number,
 					required: true,
-					min: 0,
-					get: v => Math.round(v),
-					set: v => Math.round(v)
+					min: [0, 'Invalid quantity']
 				},
 				price: {
 					type: Number,
 					required: true,
-					min: 0,
-					get: v => (Math.round(v * 100) / 100).toFixed(2),
-					set: v => (Math.round(v * 100) / 100).toFixed(2)
+					min: [0, 'Invalid price']
 				}
 			}
 		],
@@ -76,15 +74,111 @@ const orderSchema = new mongoose.Schema(
 			type: Number,
 			required: true,
 			default: 0,
-			min: 0,
-			get: v => (Math.round(v * 100) / 100).toFixed(2),
-			set: v => (Math.round(v * 100) / 100).toFixed(2)
+			min: [0, 'Invalid bill']
 		}
 	},
 	{
 		timestamps: true
 	}
 );
+
+orderSchema.statics.getOrders = async function (_id, pageNumber = 1, pageSize = 20, sort = '-_id') {
+	return await Order.find(
+		{ owner: _id },
+		'owner status paymentMethod contactPhone address items bill',
+		{
+			populate: { path: 'owner', select: 'name email' },
+			skip: (pageNumber - 1) * pageSize,
+			limit: pageSize,
+			sort
+		}
+	);
+};
+
+orderSchema.statics.remainingOrders = async function (
+	owner,
+	pageNumber = 1,
+	pageSize = 20,
+	limit = 100
+) {
+	const count = await Order.countDocuments({ owner }, { skip: pageNumber * pageSize, limit });
+	return count <= 100 ? count : '+100';
+};
+
+// the next function can be improved with transactions in mongodbbut it's not easy to
+// implement on localhost cluster so maybe in the future with online cluster
+async function updateItems(cart, order) {
+	let abortedItemId = null;
+	for (let item of cart.items) {
+		const itemInDb = await Item.findById(item.itemId, 'quantity');
+		itemInDb.quantity -= item.quantity;
+		if (itemInDb.quantity < 0) {
+			abortedItemId = itemInDb._id;
+			break;
+		} else await itemInDb.save();
+	}
+	if (abortedItemId) {
+		for (let item of cart.items) {
+			const itemInDB = await Item.findById(item.itemId, 'quantity');
+			if (abortedItemId.equals(itemInDB._id)) {
+				await Order.deleteOne({ _id: order._id });
+				return { isAborted: true, abortedItemName: item.name };
+			}
+			itemInDB.quantity += item.quantity;
+			await itemInDB.save();
+		}
+	}
+	return { isAborted: false };
+}
+
+orderSchema.statics.checkout = async function (
+	owner,
+	paymentMethod = 'cash',
+	contactPhone,
+	address
+) {
+	const cart = await Cart.findOne({ owner });
+	if (!cart || cart.items.length === 0)
+		return { err: true, status: 404, message: 'No items in cart' };
+	const { items, bill } = cart;
+	const order = new Order({ owner, items, bill, paymentMethod, contactPhone, address });
+	const { isAborted, abortedItemName: name } = await updateItems(cart, order);
+	if (isAborted)
+		return { err: true, status: 400, message: `Not enough quantity of ${name} is available` };
+	await Cart.findByIdAndDelete(cart._id);
+	return { order };
+};
+
+orderSchema.statics.cancelOrder = async function (id, owner) {
+	const order = await Order.findById(id, 'owner status items');
+	if (!order) return { err: true, status: 404, message: 'No order found' };
+	if (!order.owner.equals(owner)) return { err: true, status: 403, message: 'Access denied' };
+	if (order.status !== 'pickup')
+		return { err: true, status: 406, message: `Cancel denied. Order in ${order.status} state.` };
+	order.items.forEach(
+		async item => await Item.updateOne({ _id: item.itemId }, { $inc: { quantity: item.quantity } })
+	);
+	await Order.findByIdAndDelete(id);
+	return order;
+};
+
+orderSchema.statics.confirmOrder = async function (id) {
+	const order = await Order.findById(id, 'status');
+	if (!order) return { err: true, status: 404, message: 'No order found' };
+	if (order.status !== 'pickup')
+		return { err: true, status: 400, message: `Denied. Order in ${order.status} state.` };
+	order.status = 'shipping';
+	return order;
+};
+
+orderSchema.statics.orderShipped = async function (id, owner) {
+	const order = await Order.findById(id, 'status');
+	if (!order) return { err: true, status: 404, message: 'No order found' };
+	if (order.status !== 'shipping')
+		return { err: true, status: 400, message: `Denied. Order in ${order.status} state.` };
+	order.status = 'shipped';
+	return order;
+};
 
 const Order = mongoose.model('Order', orderSchema, 'order');
 module.exports = Order;

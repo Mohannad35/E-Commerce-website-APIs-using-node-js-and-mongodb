@@ -1,30 +1,22 @@
 const Item = require('../model/item');
-const Validator = require('../middleware/Validator');
+const Category = require('../model/category');
 const itemDebugger = require('debug')('app:item');
 const _ = require('lodash');
 
 class ItemController {
 	// get all items from database and return them as JSON objects
-	static async getAllItems(req, res) {
+	static async items(req, res) {
 		itemDebugger(req.headers['user-agent']);
-		const pageNum = req.query.pageNumber ? req.query.pageNumber : 1;
-		const pageSize = req.query.pageSize ? req.query.pageSize : 10;
-		const items = await Item.find({}, 'owner name description category price quantity', {
-			populate: { path: 'owner', select: 'name' },
-			skip: (pageNum - 1) * pageSize,
-			limit: pageSize,
-			sort: 'name'
-		});
-		const count = await Item.countDocuments({}, { skip: pageNum * pageSize, limit: 100 });
-		res.send({ pageLength: items.length, remLength: count > 99 ? '+100' : count, items });
+		const { pageNumber, pageSize, sortBy } = req.query;
+		const items = await Item.getItems(pageNumber, pageSize, sortBy);
+		const remainingItems = await Item.remainingItems(pageNumber, pageSize, 100);
+		res.send({ pageLength: items.length, remainingItems, items });
 	}
 
 	// get item by id from database and return it as JSON object
 	static async getOneItem(req, res) {
 		itemDebugger(req.headers['user-agent']);
-		const item = await Item.findById(req.params.id)
-			.populate('owner', 'name')
-			.select('owner name description category price quantity');
+		const item = await Item.getItemById(req.params.id);
 		if (!item) return res.status(404).send({ message: 'Item not found' });
 		res.status(200).send({ item });
 	}
@@ -32,36 +24,45 @@ class ItemController {
 	// add new item to Database
 	static async addItem(req, res) {
 		itemDebugger(req.headers['user-agent']);
-		const err = Validator.validateNewItem(req.body);
-		if (err) return res.status(400).send({ error: true, message: err });
-		const dot = req.body.price.toString().indexOf('.');
-		if (dot !== -1) req.body.price = parseFloat(req.body.price.toString().slice(0, dot + 3));
-		let newItem = new Item({ ...req.body, owner: req.user._id });
-		await newItem.save();
-		let item = _.pick(newItem, ['_id', 'name', 'description', 'category', 'price', 'quantity']);
-		item = _.set(item, 'owner', req.user.name);
+		const { _id, name } = req.user;
+		const { categoryId, ...body } = req.body;
+		const category = await Category.findById(categoryId, 'title');
+		if (!category) return res.status(404).send({ error: true, message: 'Category not found' });
+		let item = await Item.createItem({ _id, name }, category, body);
+		await item.save();
+		item = _(item)
+			.pick(['_id', 'name', 'description', 'price', 'quantity'])
+			.set('owner', name)
+			.set('category', category.title)
+			.value();
 		res.status(201).send({ itemid: item._id, create: true, item });
 	}
 
 	static async updateItem(req, res) {
 		itemDebugger(req.headers['user-agent']);
-		const err = Validator.validateUpdateItem(req.body);
-		if (err) return res.status(400).send({ error: true, message: err });
-		const updates = Object.keys(req.body);
-		const item = await Item.findById(req.params.id);
-		if (!item) return res.status(404).send({ message: 'Item not found' });
-		if (!item.owner.equals(req.user._id)) return res.status(403).send({ message: 'Access denied' });
-		updates.forEach(update => (item[update] = req.body[update]));
+		let { body } = req;
+		const { _id: owner } = req.user;
+		const { id } = req.params;
+		let updates = Object.keys(body);
+		if (updates.includes('categoryId')) {
+			const category = await Category.findById(body.categoryId, 'title');
+			if (!category) return res.status(404).send({ error: true, message: 'Category not found' });
+			_.unset(body, 'categoryId');
+			_.set(body, 'category', category);
+			updates = Object.keys(body);
+		}
+		const { err, status, message, item } = await Item.editItem(id, owner, updates, body);
+		if (err) return res.status(status).send({ error: true, message });
 		await item.save();
 		res.status(200).send({ itemid: item._id, update: true });
 	}
 
 	static async deleteItem(req, res) {
 		itemDebugger(req.headers['user-agent']);
-		const item = await Item.findById(req.params.id);
-		if (!item) return res.status(404).send({ message: 'Item not found' });
-		if (!item.owner.equals(req.user._id)) return res.status(403).send({ message: 'Access denied' });
-		await Item.deleteOne({ _id: item._id });
+		const { _id: owner } = req.user;
+		const { id } = req.params;
+		const { err, status, message, item } = await Item.deleteItem(id, owner);
+		if (err) return res.status(status).send({ error: true, message });
 		res.send({ itemid: item._id, delete: true });
 	}
 }

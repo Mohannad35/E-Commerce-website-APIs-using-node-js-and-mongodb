@@ -1,4 +1,5 @@
 const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 const passwordComplexity = require('joi-password-complexity');
 
 const complexityOptions = {
@@ -13,21 +14,41 @@ const complexityOptions = {
 const joiName = Joi.string()
 	.min(3)
 	.max(255)
-	.pattern(/^[A-Za-z][A-Za-z0-9 ]{2,255}$/)
-	.message('name should start with a letter and minimum length of 3');
+	.pattern(/^[A-Za-z].*$/)
+	.message('name should start with a letter');
+const joiTitle = Joi.string()
+	.min(3)
+	.max(255)
+	.pattern(/^[A-Za-z].*$/)
+	.message('title should start with a letter');
+const joiId = Joi.objectId();
 const joiEmail = Joi.string().email().message('{:[.]} is not a valid email address');
 const joiPhoneNumber = Joi.string()
 	.pattern(/^([\+][2])?[0][1][0125][0-9]{8}$/)
 	.message('{:[.]} is not a valid phone number');
 const joiAccountType = Joi.string().valid('client', 'admin', 'vendor');
 const joiDescription = Joi.string().min(3).max(1024);
-const joiCategory = Joi.string().min(3).max(255);
 const joiPrice = Joi.number().positive();
 const joiQuantity = Joi.number().integer().positive();
 
 class Validator {
 	// user validation
-	static validateNewAccount(account) {
+	static getUsers(opts) {
+		const Schema = Joi.object({
+			pageNumber: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('pageNumber should be a positive integer'),
+			pageSize: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('pageSize should be a positive integer'),
+			sortBy: Joi.string()
+				.pattern(/^[A-Za-z][A-Za-z]{2,55}$/)
+				.message('sortBy should only contain letters')
+		});
+		return Schema.validate(opts, { convert: false, abortEarly: false });
+	}
+
+	static signup(account) {
 		const Schema = Joi.object({
 			name: joiName.required(),
 			email: joiEmail.required(),
@@ -39,115 +60,127 @@ class Validator {
 				.messages({ 'any.only': `{{#label}} doesn't match` })
 				.required()
 		});
-		const { error } = Schema.validate(account, { convert: false });
-		if (error) return error.details[0].message;
-		return false;
+		return Schema.validate(account, { convert: false, abortEarly: false });
 	}
 
-	static validateLogin(account) {
+	static login(account) {
 		const Schema = Joi.object({
 			email: joiEmail.required(),
 			password: Joi.string().required()
 		});
-		const { error } = Schema.validate(account, { convert: false });
-		if (error) return error.details[0].message;
-		return false;
+		return Schema.validate(account, { convert: false, abortEarly: false });
 	}
 
-	static validateAccountType(account) {
+	static accountType(account) {
 		const Schema = Joi.object({
 			type: joiAccountType.required()
 		});
-		const { error } = Schema.validate(account, { convert: false });
-		if (error) return error.details[0].message;
-		return false;
+		return Schema.validate(account, { convert: false, abortEarly: false });
 	}
 
-	static validateUserInfo(account) {
+	static userInfo(account) {
 		const Schema = Joi.object({
 			name: joiName,
 			email: joiEmail
-		}).or('name', 'email');
-		const { error } = Schema.validate(account, { convert: false });
-		if (error) return error.details[0].message;
-		return false;
+		})
+			.or('name', 'email')
+			.label('Body');
+		return Schema.validate(account, { convert: false, abortEarly: false });
 	}
 
-	static validatePassword(account) {
+	static password(account) {
 		const Schema = Joi.object({
 			oldPassword: Joi.string().required(),
 			newPassword: passwordComplexity(complexityOptions, 'Password').required()
 		});
-		const { error } = Schema.validate(account, { convert: false });
-		if (error) return error.details[0].message;
-		return false;
+		return Schema.validate(account, { convert: false, abortEarly: false });
 	}
 
-	static validatePhoneNumber(account) {
+	static phoneNumber(account) {
 		const Schema = Joi.object({
 			phoneNumber: joiPhoneNumber.required()
 		});
-		const { error } = Schema.validate(account, { convert: false });
-		if (error) return error.details[0].message;
-		return false;
+		return Schema.validate(account, { convert: false, abortEarly: false });
 	}
 
 	// item validation
-	static validateNewItem(item) {
+	static addItem(item) {
 		const Schema = Joi.object({
 			name: joiName.required(),
 			description: joiDescription.required(),
-			category: joiCategory.required(),
+			categoryId: joiId.required(),
 			price: joiPrice.required(),
 			quantity: joiQuantity.required()
 		});
-		const { error } = Schema.validate(item, { convert: false });
-		if (error) return error.details[0].message;
-		return false;
+		return Schema.validate(item, { convert: false, abortEarly: false });
 	}
 
-	static validateUpdateItem(item) {
+	static updateItem(item) {
 		const Schema = Joi.object({
 			name: joiName,
 			description: joiDescription,
-			category: joiCategory,
+			categoryId: joiId,
 			price: joiPrice,
 			quantity: joiQuantity
 		}).or('name', 'description', 'category', 'price', 'quantity');
-		const { error } = Schema.validate(item, { convert: false });
-		if (error) return error.details[0].message;
-		return false;
+		return Schema.validate(item, { convert: false, abortEarly: false });
 	}
 
 	// cart validation
-	static validateCart(cart) {
+	static cart(cart) {
 		const Schema = Joi.object({
 			quantity: joiQuantity.required()
 		});
-		const { error } = Schema.validate(cart, { convert: false });
-		if (error) return error.details[0].message;
-		return false;
+		return Schema.validate(cart, { convert: false, abortEarly: false });
 	}
 
-	static validateQuantity(cart) {
+	static quantity(cart) {
 		const Schema = Joi.object({
 			quantity: joiQuantity
 		});
-		const { error } = Schema.validate(cart, { convert: false });
-		if (error) return error.details[0].message;
-		return false;
+		return Schema.validate(cart, { convert: false, abortEarly: false });
 	}
 
 	// order validation
-	static validateOrder(order) {
+	static order(order) {
 		const Schema = Joi.object({
 			paymentMethod: Joi.string().allow('cash', 'credit card'),
 			contactPhone: joiPhoneNumber.required(),
 			address: Joi.string().min(3).max(1024).required()
 		});
-		const { error } = Schema.validate(order, { convert: false });
-		if (error) return error.details[0].message;
-		return false;
+		return Schema.validate(order, { convert: false, abortEarly: false });
+	}
+
+	// category validations
+	static addCategory(category) {
+		const Schema = Joi.object({
+			title: joiTitle.required(),
+			parentId: joiId
+		});
+		return Schema.validate(category, { convert: false, abortEarly: false });
+	}
+
+	static updateCategory(category) {
+		const Schema = Joi.object({
+			title: joiTitle,
+			parentId: joiId
+		}).or('title', 'parentId');
+		return Schema.validate(category, { convert: false, abortEarly: false });
+	}
+
+	// list validations
+	static list(category) {
+		const Schema = Joi.object({
+			name: joiName.required()
+		});
+		return Schema.validate(category, { convert: false, abortEarly: false });
+	}
+
+	static listItemId(category) {
+		const Schema = Joi.object({
+			id: joiId.required()
+		});
+		return Schema.validate(category, { convert: false, abortEarly: false });
 	}
 }
 
