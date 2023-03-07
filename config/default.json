@@ -2,6 +2,17 @@
 	"jwtPrivateKey": "",
 	"mongodb_url": "",
 	"logtailSourceToken": "",
+	"mail_service": "",
+	"user_email": "",
+	"user_pass": "",
+	"sendgrid_apikey": "",
+	"project_issuer": "",
+	"facebookCallbackUrl": "",
+	"facebookSecretKey": "",
+	"facebookClientId": "",
+	"googleClientId": "",
+	"googleSecretKey": "",
+	"googleCallbackUrl": "",
 	"port": "",
 	"env": ""
 }

@@ -2,6 +2,17 @@
 	"jwtPrivateKey": "ecommerce_jwtPrivateKey",
 	"mongodb_url": "MONGODB_URL",
 	"logtailSourceToken": "LOGTAIL_SOURCE_TOKEN",
+	"mail_service": "MAIL_SERVICE",
+	"user_email": "MAIL_USER",
+	"user_pass": "MAIL_PASS",
+	"sendgrid_apikey": "SENDGRID_APIKEY",
+	"project_issuer": "PROJECT_ISSUER",
+	"facebookCallbackUrl": "FACEBOOK_CALLBACK_URL",
+	"facebookSecretKey": "FACEBOOK_SECRET_KEY",
+	"facebookClientId": "FACEBOOK_CLIENT_ID",
+	"googleClientId": "GOOGLE_CLIENT_ID",
+	"googleSecretKey": "GOOGLE_SECRET_KEY",
+	"googleCallbackUrl": "GOOGLE_CALLBACK_URL",
 	"port": "PORT",
 	"env": "NODE_ENV"
 }

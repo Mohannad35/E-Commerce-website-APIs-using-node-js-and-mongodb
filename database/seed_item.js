@@ -11,19 +11,20 @@ function generateItemDesc(num) {
 
 module.exports = async function () {
 	console.log(`seeding items...`);
-	const categories = await Category.find({}, 'title', { limit: 1000 });
+	const categories = await Category.find({}, 'title slug', { limit: 1000 });
 	const users = await User.find({ accountType: 'vendor' }, 'name');
 	// console.log(users);
 	console.log(await Item.deleteMany({}));
 	let index = 1;
-	for (let element of categories) {
+	for (let category of categories) {
 		const user = users[index % users.length];
-		const item = await Item.create({
+		await Item.create({
+			img: `https://picsum.photos/200/300?random=${index}`,
 			name: generateItemName(index),
 			description: generateItemDesc(index),
 			quantity: 20,
 			price: 100,
-			category: { _id: element._id, title: element.title },
+			category: { _id: category._id, title: category.title, slug: category.slug },
 			owner: { _id: user._id, name: user.name }
 		});
 		index += 1;

@@ -1,26 +1,57 @@
-const User = require('../model/user');
 const userDebugger = require('debug')('app:user');
+const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const crypto = require('crypto');
+const moment = require('moment');
+const sgMail = require('@sendgrid/mail');
+const config = require('config');
+const User = require('../model/user');
+const logger = require('../middleware/logger');
+sgMail.setApiKey(config.get('sendgrid_apikey'));
 
 class UserController {
 	static async users(req, res) {
 		userDebugger(req.headers['user-agent']);
-		const { pageNumber, pageSize, sortBy } = req.query;
-		const users = await User.getUsers(pageNumber, pageSize, sortBy);
-		const remainingUsers = await User.remainingUsers(pageNumber, pageSize, 100);
-		res.send({ pageLength: users.length, remainingUsers, users });
+		const { query } = req;
+		const users = await User.getUsers(query);
+		if (users.length > 0) return res.send({ length: users.length, users });
+		res.send({ length: 0, users });
 	}
 
 	// create a user account and return the user and the logged in token
 	static async signup(req, res) {
 		userDebugger(req.headers['user-agent']);
-		const { name, email, password, phoneNumber } = req.body;
-		const exist = await User.getUserByEmail(email);
-		if (exist) return res.status(400).send({ error: true, message: 'Email already exists' });
-		const user = new User({ name, email, password, phoneNumbers: [{ phoneNumber }] });
-		const token = await user.generateAuthToken();
-		// await user.save();
-		res.status(201).header('x-auth-token', token).send({ userid: user._id, signup: true });
+		const { body } = req;
+		const { err, status, message, user, token } = await User.signup(body);
+		if (err) return res.status(status).send({ message });
+		_.set(user, 'token', crypto.randomBytes(16).toString('hex'));
+		_.set(user, 'expireAt', moment().add(2, 'days').format('YYYY-MM-DD'));
+		const host = req.get('host');
+		const link = 'http://' + host + '/api/user/verify?token=' + user.token;
+		const msg = {
+			to: user.email,
+			from: {
+				email: 'mohannadragab53@gmail.com',
+				name: 'E-commerce Team'
+			},
+			subject: 'Account Verification Link',
+			html:
+				'Hello ' +
+				user.name +
+				',<br> Please Click on the link to verify your email.<br><a href=' +
+				link +
+				'>Click here to verify</a>'
+		};
+		await sgMail
+			.send(msg)
+			.then(async () => {
+				await user.save();
+				res.status(201).header('x-auth-token', token).send({ userid: user._id, signup: true });
+			})
+			.catch(error => {
+				logger.error(error.message, error);
+				res.status(400).send({ message: `error` });
+			});
 	}
 
 	// login a user and return the user logged in token
@@ -29,35 +60,30 @@ class UserController {
 		const { email, password } = req.body;
 		const { err, status, message, token, user } = await User.loginUser(email, password);
 		if (err) return res.status(status).send({ message });
-		// await user.save();
 		res.header('x-auth-token', token).send({ userid: user._id, login: true });
 	}
 
 	static async refreshToken(req, res) {
-		const { user, token } = req;
 		const keys = Object.keys(req.query);
+		const user = await User.getUserById(req.user._id);
 		let resp = {};
 		keys.forEach(key => _.set(resp, key, req.query[key]));
-		const newToken = await User.refreshAuthToken(user._id, token);
-		res.status(200).header('x-auth-token', newToken).send(resp);
+		const token = await user.generateAuthToken();
+		res.status(200).header('x-auth-token', token).send(resp);
 	}
 
-	// logout a user session (should return the logged out token?)
-	static async logout(req, res) {
-		userDebugger(req.headers['user-agent']);
-		const { _id } = req.user;
-		const user = await User.logoutUser(_id, req.token);
-		// await user.save();
-		res.status(200).send({ userid: user._id, logout: true });
+	static async vendorRequest(req, res) {
+		const { details } = req.body;
+		if (req.user.accountType !== 'client')
+			return res.status(400).send({ message: 'only client can make vendor requests' });
+		const { err, status, message } = await User.vendorReq(req.user._id, details);
+		if (err) return res.status(status).send({ message });
+		res.status(200).send({ message: 'vendor request submitted' });
 	}
 
-	// logout a user from all sessions (delete all tokens from the Database)
-	static async logoutSessions(req, res) {
-		userDebugger(req.headers['user-agent']);
-		const { _id } = req.user;
-		const { user, sessions } = await User.logoutSessions(_id, req.token);
-		await user.save();
-		res.send({ userid: user._id, logout: true, sessions });
+	static async getVendorRequests(req, res) {
+		const requests = await User.getVendorReq();
+		res.status(200).send({ length: requests.length, requests });
 	}
 
 	// change user account type
@@ -74,8 +100,9 @@ class UserController {
 	// edit user information (name and email)
 	static async editInfo(req, res) {
 		userDebugger(req.headers['user-agent']);
-		const { _id } = req.user;
-		const user = await User.editInfo(_id, req.body);
+		// prettier-ignore
+		const { user: { _id } , body } = req;
+		const user = await User.editInfo(_id, body);
 		const { name, email } = user;
 		try {
 			await user.save();
@@ -90,42 +117,108 @@ class UserController {
 	// change user password
 	static async changePassword(req, res) {
 		userDebugger(req.headers['user-agent']);
-		const { _id } = req.user;
-		const { oldPassword, newPassword } = req.body;
+		// prettier-ignore
+		const { user: { _id }, body: { oldPassword, newPassword } } = req
 		if (oldPassword === newPassword)
-			return res
-				.status(400)
-				.send({ err: true, message: `new password can't be the same as old password` });
+			return res.status(400).send({ err: true, message: `You can't use the same password` });
 		const { isMatch, user } = await User.changePassword(_id, oldPassword, newPassword);
 		if (!isMatch) return res.status(400).send({ message: 'Password is incorrect' });
-		const { name, email } = user;
 		await user.save();
 		res
 			.header('Authorization', `Bearer ${user.token}`)
 			.redirect(`/api/user/refresh-jwt?update=true&id=${_id}`);
-		// res.send({ userid: user._id, update: true });
 	}
 
-	// add new phone number
-	static async addPhoneNumber(req, res) {
-		userDebugger(req.headers['user-agent']);
-		const { _id } = req.user;
-		const { phoneNumber } = req.body;
-		const { err, status, message, user } = await User.addPhone(_id, phoneNumber);
-		if (err) return res.status(status).send({ error: true, message });
+	static async verify(req, res) {
+		const { token } = req.query;
+		const user = await User.findOne({ token }, '-password');
+		if (!user) return res.status(404).send({ message: 'user not found' });
+		if (user.isVerified) return res.status(400).send({ message: 'user already verified' });
+		if (user.expireAt > moment().format('YYYY-MM-DD'))
+			return res.status(400).send({ message: 'Email expired. Please hit resend email' });
+		user.isVerified = true;
+		user.token = undefined;
+		user.expireAt = undefined;
 		await user.save();
-		res.send({ userid: user._id, update: true, message: `${phoneNumber} added` });
+		res.send('<h1>Email ' + user.email + ' is now verified</h1>');
 	}
 
-	// delete phone number
-	static async delPhoneNumber(req, res) {
-		userDebugger(req.headers['user-agent']);
-		const { _id } = req.user;
-		const { phoneNumber } = req.body;
-		const { err, status, message, user } = await User.delPhone(_id, phoneNumber);
-		if (err) return res.status(status).send({ error: true, message });
+	static async resend(req, res) {
+		// prettier-ignore
+		const { user: { _id } } = req;
+		const user = await User.findById(_id);
+		if (!user) return res.status(404).send({ message: 'user not found' });
+		if (user.isVerified) return res.status(400).send({ message: 'user already verified' });
+		const host = req.get('host');
+		const link = 'http://' + host + '/api/user/verify?token=' + user.token;
+		const msg = {
+			to: user.email,
+			from: {
+				email: 'mohannadragab53@gmail.com',
+				name: 'E-commerce Team'
+			},
+			subject: 'Account Verification Link',
+			html:
+				'Hello ' +
+				user.name +
+				',<br> Please Click on the link to verify your email.<br><a href=' +
+				link +
+				'>Click here to verify</a>'
+		};
+		await sgMail
+			.send(msg)
+			.then(response => console.log('Message sent: ' + response))
+			.catch(err => console.log(err));
+		user.expireAt = moment().add(2, 'days').format('YYYY-MM-DD');
 		await user.save();
-		res.send({ userid: user._id, delete: true, message: `${phoneNumber} deleted` });
+		res.send({ message: 'Email sent.' });
+	}
+
+	static async forgetPassword(req, res) {
+		const { email } = req.body;
+		const user = await User.getUserByEmail(email);
+		if (!user) return res.status(404).send({ message: 'User not found.' });
+		const token = jwt.sign({ _id: user._id.toString() }, config.get('jwtPrivateKey'), {
+			expiresIn: '7d',
+			issuer: config.get('project_issuer')
+		});
+		const host = req.get('host');
+		const link = 'http://' + host + '/api/user/forget-password?token=' + token;
+		const msg = {
+			to: user.email,
+			from: {
+				email: 'mohannadragab53@gmail.com',
+				name: 'E-commerce Team'
+			},
+			subject: 'Rsest password Link',
+			html:
+				'Hello ' +
+				user.name +
+				',<br> Please Click on the link to change your password.<br><a href=' +
+				link +
+				'>Click here to verify</a><br>' +
+				`If you didn't ask for this just ignore the email.<br>`
+		};
+		await sgMail
+			.send(msg)
+			.then(response => console.log('Message sent: ' + response))
+			.catch(err => console.log(err));
+		res.send({ message: 'Email sent to reset your password.' });
+	}
+
+	static async redirectForgetPassword(req, res) {
+		const { token } = req.query;
+		const decoded = jwt.verify(token, config.get('jwtPrivateKey'));
+		// render or redirect to change password page with decoded._id
+	}
+
+	static async changeForgetPassword(req, res) {
+		const { _id, password } = req.body;
+		const user = await User.findById(_id);
+		user.password = password;
+		await user.save();
+		res.status(200).send({ msg: 'password changed' });
+		// render or redirect to change password page
 	}
 }
 

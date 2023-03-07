@@ -1,3 +1,6 @@
+const mongoose = require('mongoose');
+var slug = require('mongoose-slug-updater');
+mongoose.plugin(slug);
 const { init, close } = require('./db');
 const seed_user = require('./seed_user');
 const seed_category = require('./seed_category');

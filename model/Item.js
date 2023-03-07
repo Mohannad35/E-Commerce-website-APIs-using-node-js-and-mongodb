@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 
 const itemSchema = new mongoose.Schema(
 	{
+		img: {
+			type: String
+		},
 		name: {
 			type: String,
 			required: true,
@@ -35,6 +38,9 @@ const itemSchema = new mongoose.Schema(
 				trim: true,
 				minLength: 3,
 				maxLength: 255
+			},
+			slug: {
+				type: String
 			}
 		},
 		owner: {
@@ -56,13 +62,37 @@ const itemSchema = new mongoose.Schema(
 	}
 );
 
-itemSchema.statics.getItems = async function (pageNumber = 1, pageSize = 20, sort = 'name') {
-	const items = await Item.find({}, 'owner name description category price quantity', {
-		skip: (pageNumber - 1) * pageSize,
-		limit: pageSize,
-		sort
-	});
-	return items;
+itemSchema.statics.getItems = async function (query) {
+	let { skip, sort, limit } = query;
+	let { name, price, categoryId, categoryTitle, categorySlug, ownerId, ownerName } = query;
+	skip = skip || 0;
+	sort = sort || 'name';
+	limit = limit || 1000;
+	if (name) {
+		name = new RegExp(name.replace('-', ' '), 'i');
+		return await Item.find({ name }, {}, { skip, limit, sort });
+	}
+	if (categoryId) {
+		return await Item.find({ 'category._id': categoryId }, {}, { skip, limit, sort });
+	}
+	if (categorySlug) {
+		categorySlug = new RegExp(categorySlug, 'i');
+		return await Item.find({ 'category.slug': categorySlug }, {}, { skip, limit, sort });
+	}
+	if (categoryTitle) {
+		categoryTitle = new RegExp(categoryTitle.replace('-', ' '), 'i');
+		return await Item.find({ 'category.title': categoryTitle }, {}, { skip, limit, sort });
+	}
+	if (ownerId) return await Item.find({ 'owner._id': ownerId }, {}, { skip, limit, sort });
+	if (ownerName) {
+		ownerName = new RegExp(ownerName.replace('-', ' '), 'i');
+		return await Item.find({ 'owner.name': ownerName }, {}, { skip, limit, sort });
+	}
+	if (price) {
+		const [min, max] = price.split('-'); // 300-1000
+		return await Item.find({ price: { $gte: min, $lte: max } }, {}, { skip, limit, sort });
+	}
+	return await Item.find({}, {}, { skip, limit, sort });
 };
 
 itemSchema.statics.remainingItems = async function (pageNumber = 1, pageSize = 20, limit = 100) {

@@ -7,10 +7,9 @@ class ItemController {
 	// get all items from database and return them as JSON objects
 	static async items(req, res) {
 		itemDebugger(req.headers['user-agent']);
-		const { pageNumber, pageSize, sortBy } = req.query;
-		const items = await Item.getItems(pageNumber, pageSize, sortBy);
-		const remainingItems = await Item.remainingItems(pageNumber, pageSize, 100);
-		res.send({ pageLength: items.length, remainingItems, items });
+		const { query } = req;
+		const items = await Item.getItems(query);
+		res.send({ length: items.length, items });
 	}
 
 	// get item by id from database and return it as JSON object
