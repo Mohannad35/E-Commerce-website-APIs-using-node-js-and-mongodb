@@ -12,8 +12,11 @@ router.get('/', [auth], CartController.getCartItems);
 router.post(
 	'/:id',
 	[auth, validateObjectId, validate('body', Validator.cart)],
-	CartController.addCart
+	CartController.addItemToCart
 );
+
+// create cart or add items to it
+router.post('/', [auth, validate('body', Validator.cartItems)], CartController.addItemsToCart);
 
 // reduce item quantity in cart or remove it from cart
 router.delete(

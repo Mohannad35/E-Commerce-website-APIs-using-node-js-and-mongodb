@@ -12,15 +12,16 @@ const userSchema = new mongoose.Schema(
 		name: {
 			type: String,
 			required: true,
-			trim: true,
 			minlength: 3,
 			maxlength: 255,
-			match: /^[A-Za-z].*/
+			match: /^[\p{L}].*$/u
 		},
 		email: {
 			type: String,
 			unique: true,
 			lowercase: true,
+			sparse: true,
+			index: true,
 			validate: {
 				validator: function (value) {
 					return validator.isEmail(value);
@@ -50,7 +51,19 @@ const userSchema = new mongoose.Schema(
 		},
 		phoneNumber: {
 			type: String,
-			unique: true
+			unique: true,
+			sparse: true,
+			index: true
+		},
+		country: {
+			type: String,
+			minlength: 3,
+			maxlength: 255
+		},
+		city: {
+			type: String,
+			minlength: 3,
+			maxlength: 255
 		},
 		address: {
 			type: String,

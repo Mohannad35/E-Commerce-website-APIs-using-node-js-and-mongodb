@@ -1,20 +1,33 @@
 {
 	"name": "e-commerce-api",
 	"version": "1.0.0",
-	"description": "An e-commerce web application API",
+	"description": "An e-commerce web application API using NodeJS and MongoDB",
 	"main": "index.js",
 	"scripts": {
 		"start": "node index.js",
-		"test": "jest --watchAll --verbose --detectOpenHandles --coverage --testLocationInResults --useStderr --colors",
 		"dev": "env-cmd -f ./config/.env nodemon index.js",
 		"seed": "env-cmd -f ./config/.env node ./database/seed.js",
-		"windowsDebug": "@powershell -Command $env:DEBUG='app:*';nodemon index.js",
-		"bashDebug": "DEBUG=app:* nodemon index.js"
+		"test": "jest --watchAll --verbose --detectOpenHandles --coverage --testLocationInResults --useStderr --colors"
 	},
 	"engins": {
-		"node": "18.14.1"
+		"node": "18.15.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Mohannad35/e-commerce-api.git"
 	},
 	"author": "Mohannad Ragab",
+	"contributors": [
+		{
+			"name": "Ahmed Atef"
+		},
+		{
+			"name": "Mohamed Hamada"
+		},
+		{
+			"name": "Mohammed Fahmy"
+		}
+	],
 	"license": "ISC",
 	"dependencies": {
 		"@logtail/node": "^0.2.2",
@@ -23,14 +36,10 @@
 		"bcryptjs": "^2.4.3",
 		"compression": "^1.7.4",
 		"config": "^3.3.9",
-		"connect-flash": "^0.1.1",
 		"cookie-parser": "^1.4.6",
-		"crypto": "^1.0.1",
 		"debug": "^4.3.4",
-		"dotenv": "^16.0.3",
 		"express": "^4.18.2",
 		"express-async-errors": "^3.1.1",
-		"express-session": "^1.17.3",
 		"helmet": "^6.0.1",
 		"joi": "^17.8.3",
 		"joi-objectid": "^4.0.2",
@@ -39,20 +48,18 @@
 		"jsonwebtoken": "^9.0.0",
 		"lodash": "^4.17.21",
 		"moment": "^2.29.4",
-		"mongoose": "^7.0.0",
+		"mongoose": "^7.0.1",
 		"mongoose-slug-updater": "^3.3.0",
 		"morgan": "^1.10.0",
-		"nodemailer": "^6.9.1",
 		"passport": "^0.6.0",
 		"passport-facebook": "^3.0.0",
 		"passport-google-oauth": "^2.0.0",
 		"validator": "^13.9.0",
-		"winston": "^3.8.2",
-		"xoauth2": "^1.2.0"
+		"winston": "^3.8.2"
 	},
 	"devDependencies": {
 		"env-cmd": "^10.1.0",
-		"jest": "^29.4.3",
+		"jest": "^29.5.0",
 		"jshint": "^2.13.6",
 		"nodemon": "^2.0.21",
 		"supertest": "^6.3.3"

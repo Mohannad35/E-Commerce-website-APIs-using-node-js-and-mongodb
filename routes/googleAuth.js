@@ -38,7 +38,6 @@ passport.use(
 				console.log('Google User already exist in DB..');
 				const token = generateToken(user);
 				_.set(user, 'jwtToken', token);
-				console.log(user, token);
 				return done(null, user);
 			}
 		}
@@ -54,18 +53,22 @@ router.get(
 		failureRedirect: '/auth/google/error'
 	}),
 	(req, res) => {
-		if (req.user.err) return res.status(400).send(req.user.msg);
+		if (req.user.err) return res.status(400).redirect(`/auth/google/error?msg=${req.user.msg}`);
 		const token = req.user.jwtToken;
-		res.header('x-auth-token', token).send({ userid: req.user._id });
+		res.cookie('x-auth-token', token);
+		res.redirect(`/auth/google/success?id=${req.user._id}`);
 	}
 );
 
 router.get('/error', (req, res) => {
-	res.send('Error.');
+	const { msg } = req.query;
+	res.send({ msg: msg || 'Something went wrong while signing with google.' });
 });
 
 router.get('/success', (req, res) => {
-	res.send('Success.');
+	const token = req.cookies['x-auth-token'];
+	res.clearCookie('x-auth-token');
+	res.header('x-auth-token', token).send({ msg: 'login successfully.' });
 });
 
 function generateToken(user) {

@@ -1,18 +1,15 @@
 {
-	"jwtPrivateKey": "ecommerce_jwtPrivateKey",
-	"mongodb_url": "MONGODB_URL",
-	"logtailSourceToken": "LOGTAIL_SOURCE_TOKEN",
-	"mail_service": "MAIL_SERVICE",
-	"user_email": "MAIL_USER",
-	"user_pass": "MAIL_PASS",
-	"sendgrid_apikey": "SENDGRID_APIKEY",
 	"project_issuer": "PROJECT_ISSUER",
-	"facebookCallbackUrl": "FACEBOOK_CALLBACK_URL",
-	"facebookSecretKey": "FACEBOOK_SECRET_KEY",
+	"env": "NODE_ENV",
+	"port": "PORT",
+	"mongodb_url": "MONGODB_URL",
+	"jwtPrivateKey": "ECOMMERCE_JWT_PRIVATE_KEY",
+	"logtailSourceToken": "LOGTAIL_SOURCE_TOKEN",
+	"sendgrid_apikey": "SENDGRID_API_KEY",
 	"facebookClientId": "FACEBOOK_CLIENT_ID",
+	"facebookSecretKey": "FACEBOOK_SECRET_KEY",
+	"facebookCallbackUrl": "FACEBOOK_CALLBACK_URL",
 	"googleClientId": "GOOGLE_CLIENT_ID",
 	"googleSecretKey": "GOOGLE_SECRET_KEY",
-	"googleCallbackUrl": "GOOGLE_CALLBACK_URL",
-	"port": "PORT",
-	"env": "NODE_ENV"
+	"googleCallbackUrl": "GOOGLE_CALLBACK_URL"
 }

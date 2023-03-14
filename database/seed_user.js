@@ -7,6 +7,7 @@ let admin = {
 	password: '123456aB',
 	birthday: moment().subtract(myRandomInt(12, 80), 'years').format('YYYY-MM-DD'),
 	gender: 'male',
+	isVerified: true,
 	accountType: 'admin',
 	phoneNumber: `01${myRandomInt(0, 3)}${randomId(8)}`,
 	address: `address`
@@ -35,9 +36,10 @@ function generateUser(num, type = 'client') {
 			name: `User ${num < 10 ? `0${num}` : num}`,
 			email: `user${num < 10 ? `0${num}` : num}@gmail.com`,
 			password: '123456aB',
-			birthday: moment().subtract(myRandomInt(12, 80), 'years').format('YYYY-MM-DD'),
+			birthday: moment().subtract(myRandomInt(12, 50), 'years').format('YYYY-MM-DD'),
 			gender: num % 2 ? 'female' : 'male',
 			accountType: type,
+			isVerified: true,
 			phoneNumber: `01${myRandomInt(0, 3)}${randomId(8)}`,
 			address: `address ${num < 10 ? `0${num}` : num}`
 		};
@@ -46,9 +48,10 @@ function generateUser(num, type = 'client') {
 			name: `User ${num < 10 ? `0${num}` : num}`,
 			email: `user${num < 10 ? `0${num}` : num}@gmail.com`,
 			password: '123456aB',
-			birthday: moment().subtract(myRandomInt(12, 80), 'years').format('YYYY-MM-DD'),
+			birthday: moment().subtract(myRandomInt(12, 50), 'years').format('YYYY-MM-DD'),
 			gender: num % 2 ? 'female' : 'male',
 			accountType: type,
+			isVerified: true,
 			phoneNumber: `01${myRandomInt(3)}${randomId(8)}`,
 			address: `address ${num < 10 ? `0${num}` : num}`,
 			companyName: `company ${num < 10 ? `0${num}` : num}`,
@@ -61,10 +64,9 @@ function generateUser(num, type = 'client') {
 module.exports = async function () {
 	console.log(`seeding users...`);
 	console.log(await User.deleteMany({}));
-	console.log(moment().subtract(myRandomInt(12, 80), 'years').format('YYYY-MM-DD'));
 	let user = new User(admin);
 	await user.save();
-	for (let i = 1; i <= 20; i++) {
+	for (let i = 1; i <= 10; i++) {
 		user = new User(generateUser(i, i % 4 ? 'client' : 'vendor'));
 		await user.save();
 	}

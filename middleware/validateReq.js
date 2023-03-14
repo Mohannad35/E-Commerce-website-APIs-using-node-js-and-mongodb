@@ -4,7 +4,7 @@ module.exports = function (obj, validator) {
 		if (error) {
 			let errorMessage = '';
 			for (err of error.details) errorMessage = errorMessage.concat(err.message, '. ');
-			return res.status(400).send({ error: true, message: errorMessage });
+			return res.status(400).send({ error: true, message: errorMessage.replace(/"/g, '') });
 		}
 		next();
 	};

@@ -1,18 +1,15 @@
 {
-	"jwtPrivateKey": "",
-	"mongodb_url": "",
-	"logtailSourceToken": "",
-	"mail_service": "",
-	"user_email": "",
-	"user_pass": "",
-	"sendgrid_apikey": "",
 	"project_issuer": "",
-	"facebookCallbackUrl": "",
-	"facebookSecretKey": "",
+	"env": "",
+	"port": "",
+	"mongodb_url": "",
+	"jwtPrivateKey": "",
+	"logtailSourceToken": "",
+	"sendgrid_apikey": "",
 	"facebookClientId": "",
+	"facebookSecretKey": "",
+	"facebookCallbackUrl": "",
 	"googleClientId": "",
 	"googleSecretKey": "",
-	"googleCallbackUrl": "",
-	"port": "",
-	"env": ""
+	"googleCallbackUrl": ""
 }

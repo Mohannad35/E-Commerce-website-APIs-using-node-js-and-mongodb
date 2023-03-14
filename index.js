@@ -2,9 +2,6 @@ const config = require('config');
 const express = require('express');
 require('express-async-errors');
 const app = express();
-const mongoose = require('mongoose');
-var slug = require('mongoose-slug-updater');
-mongoose.plugin(slug);
 
 require('./start/logging')(app);
 require('./start/config')();

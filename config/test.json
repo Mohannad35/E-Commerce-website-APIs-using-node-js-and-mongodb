@@ -2,8 +2,7 @@
 	"jwtPrivateKey": "12345",
 	"mongodb_url": "mongodb://127.0.0.1:27017/EcommerceDB_tests",
 	"logtailSourceToken": "",
-	"user_email": "",
-	"user_pass": "",
 	"port": "5001",
-	"env": "test"
+	"env": "test",
+	"project_issuer": "PROJECT_ISSUER"
 }

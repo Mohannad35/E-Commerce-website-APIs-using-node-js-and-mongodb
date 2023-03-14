@@ -15,12 +15,12 @@ const complexityOptions = {
 const joiName = Joi.string()
 	.min(3)
 	.max(255)
-	.pattern(/^[A-Za-z].*$/)
+	.pattern(/^[\p{L}].*$/u)
 	.message('name should start with a letter');
 const joiTitle = Joi.string()
 	.min(3)
 	.max(255)
-	.pattern(/^[A-Za-z].*$/)
+	.pattern(/^\p{L}.*$/u)
 	.message('title should start with a letter');
 const joiId = Joi.objectId();
 const joiEmail = Joi.string().email().message('{:[.]} is not a valid email address');
@@ -206,6 +206,20 @@ class Validator {
 			quantity: joiQuantity.required()
 		});
 		return Schema.validate(cart, { convert: false, abortEarly: false });
+	}
+
+	static cartItems(items) {
+		const Schema = Joi.object({
+			items: Joi.array()
+				.items(
+					Joi.object({
+						_id: Joi.objectId().required(),
+						quantity: Joi.number().integer().positive().required()
+					})
+				)
+				.required()
+		});
+		return Schema.validate(items, { convert: false, abortEarly: false });
 	}
 
 	static quantity(cart) {

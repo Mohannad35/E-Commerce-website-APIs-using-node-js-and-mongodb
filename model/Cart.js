@@ -11,7 +11,7 @@ const cartSchema = new mongoose.Schema(
 		items: [
 			{
 				_id: false,
-				itemId: {
+				item: {
 					type: mongoose.Schema.Types.ObjectId,
 					ref: 'Item',
 					required: true
@@ -22,7 +22,7 @@ const cartSchema = new mongoose.Schema(
 					trim: true,
 					minLength: 3,
 					maxLength: 255,
-					match: /^[A-Za-z].*/g
+					match: /^[\p{L}].*$/u
 				},
 				quantity: {
 					type: Number,
@@ -50,7 +50,12 @@ const cartSchema = new mongoose.Schema(
 	}
 );
 
-cartSchema.statics.getCart = async function (owner) {
+cartSchema.statics.getCart = async function (owner, full = false) {
+	if (full)
+		return await Cart.findOne({ owner }, 'owner items bill', {
+			populate: { path: 'owner', select: 'name' },
+			populate: { path: 'items.item', select: '_id img description category owner' }
+		});
 	return await Cart.findOne({ owner }, 'owner items bill', {
 		populate: { path: 'owner', select: 'name' }
 	});
@@ -66,9 +71,9 @@ cartSchema.statics.addToCart = async function (owner, itemId, quantity) {
 	const item = await Item.findById(itemId);
 	if (!item) return { err: true, status: 404, message: 'Item not found' };
 	const { name, price } = item;
-	const itemIndex = cart.items.findIndex(obj => obj.itemId.equals(itemId));
+	const itemIndex = cart.items.findIndex(obj => obj.item.equals(itemId));
 	if (itemIndex !== -1) cart.items[itemIndex].quantity += quantity;
-	else cart.items.push({ itemId, name, quantity, price });
+	else cart.items.push({ item: itemId, name, quantity, price });
 	cart.bill = cart.items.reduce((acc, cur) => acc + cur.quantity * cur.price, 0);
 	return { cart };
 };
@@ -76,7 +81,7 @@ cartSchema.statics.addToCart = async function (owner, itemId, quantity) {
 cartSchema.statics.reduceItemInCart = async function (owner, itemId, quantity = -1) {
 	let cart = await Cart.findOne({ owner }, 'owner items bill');
 	if (!cart) return { err: true, status: 404, message: 'Cart not found' };
-	const itemIndex = cart.items.findIndex(item => item.itemId.equals(itemId));
+	const itemIndex = cart.items.findIndex(obj => obj.item.equals(itemId));
 	if (itemIndex === -1) return { err: true, status: 404, message: `Item dosn't exist in cart` };
 	cart.items[itemIndex].quantity -= quantity;
 	if (cart.items[itemIndex].quantity <= 0 || quantity === -1) cart.items.splice(itemIndex, 1);

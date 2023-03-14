@@ -56,7 +56,7 @@ const orderSchema = new mongoose.Schema(
 					trim: true,
 					minLength: 3,
 					maxLength: 255,
-					match: /^[A-Za-z].*/
+					match: /^[\p{L}].*$/u
 				},
 				quantity: {
 					type: Number,
