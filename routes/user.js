@@ -12,6 +12,12 @@ router.get('/refresh-jwt', [auth], UserController.refreshToken);
 // show all users (will check later that the user has admin permissions)
 router.get('/', [auth, isAdmin, validate('query', Validator.getUsers)], UserController.users);
 
+router.get('/stats', [auth, isAdmin, validate('query', Validator.getStats)], UserController.stats);
+
+router.delete('/', [auth, isAdmin, validate('body', Validator.id)], UserController.deleteUser);
+
+router.post('/ban', [auth, isAdmin, validate('body', Validator.id)], UserController.banUser);
+
 // signup
 router.post('/signup', [validate('body', Validator.signup)], UserController.signup);
 

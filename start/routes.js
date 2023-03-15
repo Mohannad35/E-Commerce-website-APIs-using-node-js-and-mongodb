@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 var slug = require('mongoose-slug-updater');
 mongoose.plugin(slug);
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 const facebookRouter = require('../routes/facebookAuth');
 const googleRouter = require('../routes/googleAuth');
 const userRouter = require('../routes/user');
@@ -17,6 +18,7 @@ module.exports = function (app) {
 	app.use(express.urlencoded({ extended: true }));
 	app.use(express.json());
 	app.use(cookieParser());
+	app.use(cors());
 	app.use('/api/user', userRouter);
 	app.use('/api/item', itemRouter);
 	app.use('/api/cart', cartRouter);

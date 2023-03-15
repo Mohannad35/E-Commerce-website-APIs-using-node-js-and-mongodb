@@ -63,36 +63,39 @@ const itemSchema = new mongoose.Schema(
 );
 
 itemSchema.statics.getItems = async function (query) {
-	let { skip, sort, limit } = query;
+	let { skip, sort, limit, pageNumber, pageSize } = query;
 	let { name, price, categoryId, categoryTitle, categorySlug, ownerId, ownerName } = query;
-	skip = skip || 0;
+	if (pageNumber || pageSize) {
+		limit = undefined;
+		skip = undefined;
+	}
+	if (pageNumber && !pageSize) pageSize = 20;
+	if (!pageNumber && pageSize) pageNumber = 1;
+	skip = (pageNumber - 1) * pageSize || skip || 0;
+	limit = pageSize || limit || 1000;
 	sort = sort || 'name';
-	limit = limit || 1000;
+	if (sort) sort = sort.split(',').join(' ');
+	let items;
 	if (name) {
 		name = new RegExp(name.replace('-', ' '), 'i');
-		return await Item.find({ name }, {}, { skip, limit, sort });
-	}
-	if (categoryId) {
-		return await Item.find({ 'category._id': categoryId }, {}, { skip, limit, sort });
-	}
-	if (categorySlug) {
+		items = await Item.find({ name }, {}, { skip, limit, sort });
+	} else if (categoryId) {
+		items = await Item.find({ 'category._id': categoryId }, {}, { skip, limit, sort });
+	} else if (categorySlug) {
 		categorySlug = new RegExp(categorySlug, 'i');
-		return await Item.find({ 'category.slug': categorySlug }, {}, { skip, limit, sort });
-	}
-	if (categoryTitle) {
+		items = await Item.find({ 'category.slug': categorySlug }, {}, { skip, limit, sort });
+	} else if (categoryTitle) {
 		categoryTitle = new RegExp(categoryTitle.replace('-', ' '), 'i');
-		return await Item.find({ 'category.title': categoryTitle }, {}, { skip, limit, sort });
-	}
-	if (ownerId) return await Item.find({ 'owner._id': ownerId }, {}, { skip, limit, sort });
-	if (ownerName) {
+		items = await Item.find({ 'category.title': categoryTitle }, {}, { skip, limit, sort });
+	} else if (ownerId) items = await Item.find({ 'owner._id': ownerId }, {}, { skip, limit, sort });
+	else if (ownerName) {
 		ownerName = new RegExp(ownerName.replace('-', ' '), 'i');
-		return await Item.find({ 'owner.name': ownerName }, {}, { skip, limit, sort });
-	}
-	if (price) {
+		items = await Item.find({ 'owner.name': ownerName }, {}, { skip, limit, sort });
+	} else if (price) {
 		const [min, max] = price.split('-'); // 300-1000
-		return await Item.find({ price: { $gte: min, $lte: max } }, {}, { skip, limit, sort });
-	}
-	return await Item.find({}, {}, { skip, limit, sort });
+		items = await Item.find({ price: { $gte: min, $lte: max } }, {}, { skip, limit, sort });
+	} else items = await Item.find({}, {}, { skip, limit, sort });
+	return { pageNumber, pageSize, items };
 };
 
 itemSchema.statics.remainingItems = async function (pageNumber = 1, pageSize = 20, limit = 100) {

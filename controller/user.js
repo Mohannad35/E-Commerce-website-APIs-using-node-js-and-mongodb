@@ -13,9 +13,34 @@ class UserController {
 	static async users(req, res) {
 		userDebugger(req.headers['user-agent']);
 		const { query } = req;
-		const users = await User.getUsers(query);
-		if (users.length > 0) return res.send({ length: users.length, users });
+		const { pageNumber, pageSize, users } = await User.getUsers(query);
+		if (users.length > 0) return res.send({ pageNumber, pageSize, length: users.length, users });
 		res.send({ length: 0, users });
+	}
+
+	static async stats(req, res) {
+		userDebugger(req.headers['user-agent']);
+		const { query } = req;
+		const count = await User.stats(query);
+		return res.send({ length: count });
+	}
+
+	static async deleteUser(req, res) {
+		userDebugger(req.headers['user-agent']);
+		const { id } = req.body;
+		const { err, status, message, user } = await User.deleteUser(id);
+		if (err) return res.status(status).send({ message });
+		res.send({ delete: true, user });
+	}
+
+	static async banUser(req, res) {
+		userDebugger(req.headers['user-agent']);
+		const { id } = req.body;
+		if (id === req.user._id) return res.status(400).send({ message: `You can't ban yourself` });
+		const { err, status, message, user } = await User.banUser(id);
+		if (err) return res.status(status).send({ message });
+		await user.save();
+		res.send({ user });
 	}
 
 	// create a user account and return the user and the logged in token

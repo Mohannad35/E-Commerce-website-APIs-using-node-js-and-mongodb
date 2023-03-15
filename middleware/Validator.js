@@ -42,9 +42,23 @@ const joiPrice = Joi.number().positive();
 const joiQuantity = Joi.number().integer().positive();
 
 class Validator {
+	// common
+	static id(data) {
+		const Schema = Joi.object({
+			id: joiId.required()
+		});
+		return Schema.validate(data, { convert: false, abortEarly: false });
+	}
+
 	// user validation
 	static getUsers(opts) {
 		const Schema = Joi.object({
+			pageNumber: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('pageNumber should be a positive integer'),
+			pageSize: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('pageSize should be a positive integer'),
 			skip: Joi.string()
 				.pattern(/^[0-9]+$/)
 				.message('skip should be a positive integer'),
@@ -58,8 +72,8 @@ class Validator {
 				.pattern(/^[0-9]+$/)
 				.message('maxAge should be a positive integer'),
 			sort: Joi.string()
-				.pattern(/^[A-Za-z]+$/)
-				.message('sort should only contain letters'),
+				.pattern(/^[A-Za-z_\-,.]+$/)
+				.message('sort should only contain letters and _-,.'),
 			accountType: Joi.string()
 				.pattern(/^[A-Za-z]+$/)
 				.message('accountType should only contain letters'),
@@ -68,6 +82,27 @@ class Validator {
 				.message('gender should only contain letters'),
 			name: Joi.string(),
 			email: Joi.string()
+		});
+		return Schema.validate(opts, { convert: false, abortEarly: false });
+	}
+
+	static getStats(opts) {
+		const Schema = Joi.object({
+			skip: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('skip should be a positive integer'),
+			limit: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('limit should be a positive integer'),
+			date: Joi.string()
+				.pattern(/^[0-9_,.\-]+$/)
+				.message('date should be YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD'),
+			accountType: Joi.string()
+				.pattern(/^[A-Za-z]+$/)
+				.message('accountType should only contain letters'),
+			gender: Joi.string()
+				.pattern(/^[A-Za-z]+$/)
+				.message('gender should only contain letters')
 		});
 		return Schema.validate(opts, { convert: false, abortEarly: false });
 	}
@@ -156,6 +191,12 @@ class Validator {
 	// item validation
 	static getItems(item) {
 		const Schema = Joi.object({
+			pageNumber: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('pageNumber should be a positive integer'),
+			pageSize: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('pageSize should be a positive integer'),
 			skip: Joi.string()
 				.pattern(/^[0-9]+$/)
 				.message('skip should be a positive integer'),
@@ -163,8 +204,8 @@ class Validator {
 				.pattern(/^[0-9]+$/)
 				.message('limit should be a positive integer'),
 			sort: Joi.string()
-				.pattern(/^[A-Za-z]+$/)
-				.message('sort should only contain letters'),
+				.pattern(/^[A-Za-z_\-,.]+$/)
+				.message('sort should only contain letters and _-,.'),
 			categoryId: Joi.objectId(),
 			categorySlug: Joi.string(),
 			categoryTitle: Joi.string(),

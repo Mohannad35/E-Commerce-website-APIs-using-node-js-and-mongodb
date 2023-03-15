@@ -33,6 +33,15 @@ const userSchema = new mongoose.Schema(
 			type: Boolean,
 			default: false
 		},
+		status: {
+			type: String,
+			lowercase: true,
+			default: 'active',
+			enum: {
+				values: ['active', 'idle', 'offline', 'banned'],
+				message: '{VALUE} is not valid. Must be active, idle, offline, or banned'
+			}
+		},
 		token: { type: String },
 		expireAt: { type: Date },
 		password: {
@@ -45,8 +54,8 @@ const userSchema = new mongoose.Schema(
 			lowercase: true,
 			default: 'client',
 			enum: {
-				values: ['admin', 'vendor', 'client'],
-				message: '{VALUE} is not valid. Must be admin, vendor, or client'
+				values: ['admin', 'vendor', 'client', 'support'],
+				message: '{VALUE} is not valid. Must be admin, support, vendor, or client'
 			}
 		},
 		phoneNumber: {
@@ -159,33 +168,42 @@ userSchema.statics.loginUser = async function (email, password) {
 };
 
 userSchema.statics.getUsers = async function (query) {
-	let { skip, sort, limit, accountType, name, email, age, maxAge, gender } = query;
-	skip = skip || 0;
+	let { skip, sort, limit, pageNumber, pageSize, accountType, name, email, age, maxAge, gender } =
+		query;
+	if (pageNumber || pageSize) {
+		limit = undefined;
+		skip = undefined;
+	}
+	if (pageNumber && !pageSize) pageSize = 20;
+	if (!pageNumber && pageSize) pageNumber = 1;
+	skip = (pageNumber - 1) * pageSize || skip || 0;
+	limit = pageSize || limit || 1000;
 	sort = sort || 'name';
-	limit = limit || 1000;
+	if (sort) sort = sort.split(',').join(' ');
+	let users;
 	if (name) {
 		name = new RegExp(name.replace('-', ' '), 'i');
-		return await User.find({ name }, '-password', { skip, limit, sort });
-	}
-	if (email) {
+		users = await User.find({ name }, '-password', { skip, limit, sort });
+	} else if (email) {
 		email = new RegExp(email, 'i');
-		return await User.find({ email }, '-password', { skip, limit, sort });
-	}
-	if (accountType) return await User.find({ accountType }, '-password', { skip, limit, sort });
-	if (gender) return await User.find({ gender }, '-password', { skip, limit, sort });
-	if (age)
-		return await User.find(
+		users = await User.find({ email }, '-password', { skip, limit, sort });
+	} else if (accountType)
+		users = await User.find({ accountType }, '-password', { skip, limit, sort });
+	else if (gender) users = await User.find({ gender }, '-password', { skip, limit, sort });
+	else if (age)
+		users = await User.find(
 			{ birthday: { $lte: moment().subtract(age, 'years').format('YYYY-MM-DD') } },
 			'-password',
 			{ skip, limit, sort }
 		);
-	if (maxAge)
-		return await User.find(
+	else if (maxAge)
+		users = await User.find(
 			{ birthday: { $gte: moment().subtract(maxAge, 'years').format('YYYY-MM-DD') } },
 			'-password',
 			{ skip, limit, sort }
 		);
-	return await User.find({}, '-password', { skip, limit, sort });
+	else users = await User.find({}, '-password', { skip, limit, sort });
+	return { pageNumber, pageSize, users };
 };
 
 userSchema.statics.getUserByEmail = async function (email) {
@@ -196,13 +214,27 @@ userSchema.statics.getUserById = async function (id) {
 	return await User.findById(id, '-password');
 };
 
-userSchema.statics.remainingUsers = async function (pageNumber = 1, pageSize = 20, limit = 100) {
-	const count = await User.countDocuments({}, { skip: pageNumber * pageSize, limit });
-	return count <= 100 ? count : '+100';
+userSchema.statics.stats = async function (query) {
+	let { skip, limit, date, accountType, gender } = query;
+	let count;
+	if (!skip) skip = 0;
+	if (!limit) limit = 1000;
+	if (date) date = date.split(',');
+	if (gender) count = await User.countDocuments({ gender }, { skip, limit });
+	else if (accountType) count = await User.countDocuments({ accountType }, { skip, limit });
+	else if (date.length === 1)
+		count = await User.countDocuments({ createdAt: { $gte: date[0] } }, { skip, limit });
+	else if (date.length === 2)
+		count = await User.countDocuments(
+			{ $and: [{ createdAt: { $gte: date[0] } }, { createdAt: { $lte: date[1] } }] },
+			{ skip, limit }
+		);
+	else count = await User.countDocuments();
+	return count;
 };
 
 userSchema.statics.vendorReq = async function (id, details) {
-	const request = Request.findById(id);
+	const request = Request.findById(id, '-password');
 	if (request) return { err: true, status: 400, message: 'Request already submitted' };
 	const result = await Request.create({
 		_id: id,
@@ -224,7 +256,7 @@ userSchema.statics.changeAccountType = async function (userId, type) {
 };
 
 userSchema.statics.editInfo = async function (userId, body) {
-	const user = await User.findById(userId);
+	const user = await User.findById(userId, '-password');
 	const updates = Object.keys(body);
 	updates.forEach(update => (user[update] = body[update]));
 	return user;
@@ -235,6 +267,20 @@ userSchema.statics.changePassword = async function (userId, oldPassword, newPass
 	const isMatch = await bcrypt.compare(oldPassword, user.password);
 	user.password = newPassword;
 	return { isMatch, user };
+};
+
+userSchema.statics.deleteUser = async function (userId) {
+	const user = await User.findById(userId, '-password');
+	if (!user) return { err: true, status: 400, message: 'User not found.' };
+	await User.deleteOne({ _id: userId });
+	return { user };
+};
+
+userSchema.statics.banUser = async function (userId) {
+	const user = await User.findById(userId, '-password');
+	if (!user) return { err: true, status: 400, message: 'User not found.' };
+	user.status = 'banned';
+	return { user };
 };
 
 const User = mongoose.model('User', userSchema, 'user');
