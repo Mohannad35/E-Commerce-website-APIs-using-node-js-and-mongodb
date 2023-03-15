@@ -2,9 +2,7 @@ const config = require('config');
 const express = require('express');
 require('express-async-errors');
 const app = express();
-// ADD THIS
-var cors = require('cors');
-app.use(cors());
+
 require('./start/logging')(app);
 require('./start/config')();
 require('./start/routes')(app);
