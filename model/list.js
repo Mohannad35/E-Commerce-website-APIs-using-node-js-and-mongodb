@@ -1,5 +1,5 @@
-var mongoose = require('mongoose');
-const Item = require('../model/item');
+import mongoose from 'mongoose';
+import Item from './item.js';
 
 const listSchema = new mongoose.Schema(
 	{
@@ -107,4 +107,4 @@ listSchema.statics.deleteList = async function (id, userid) {
 };
 
 const List = mongoose.model('List', listSchema, 'list');
-module.exports = List;
+export default List;

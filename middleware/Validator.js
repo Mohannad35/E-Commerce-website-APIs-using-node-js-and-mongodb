@@ -1,8 +1,9 @@
-const Joi = require('joi');
-Joi.objectId = require('joi-objectid')(Joi);
-const passwordComplexity = require('joi-password-complexity');
-const moment = require('moment');
+import Joi from 'joi';
+import moment from 'moment';
+import smn from 'joi-objectid';
+import passwordComplexity from 'joi-password-complexity';
 
+Joi.objectId = smn(Joi);
 const complexityOptions = {
 	min: 8,
 	max: 30,
@@ -41,7 +42,7 @@ const joiDescription = Joi.string().min(3).max(1024);
 const joiPrice = Joi.number().positive();
 const joiQuantity = Joi.number().integer().positive();
 
-class Validator {
+export default class Validator {
 	// common
 	static id(data) {
 		const Schema = Joi.object({
@@ -312,5 +313,3 @@ class Validator {
 		return Schema.validate(category, { convert: false, abortEarly: false });
 	}
 }
-
-module.exports = Validator;

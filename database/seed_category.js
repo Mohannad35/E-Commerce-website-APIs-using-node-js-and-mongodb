@@ -1,4 +1,4 @@
-const Category = require('../model/category');
+import { Category } from './../model/category.js';
 
 function seedCategory(title, parentId, parentTitle) {
 	try {
@@ -9,13 +9,13 @@ function seedCategory(title, parentId, parentTitle) {
 	}
 }
 
-module.exports = async function () {
+export default async function () {
 	console.log(`seeding categories...`);
 	console.log(await Category.deleteMany({}));
-	for (element of Categories) {
+	for (let element of Categories) {
 		const category = seedCategory(element.parent);
 		await category.save();
-		for (child of element.children) {
+		for (let child of element.children) {
 			if (child.parent) {
 				const parentCh = seedCategory(child.parent, category._id, category.title);
 				await parentCh.save();
@@ -29,7 +29,7 @@ module.exports = async function () {
 			}
 		}
 	}
-};
+}
 
 const Categories = [
 	{

@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const Item = require('./item');
-const Cart = require('./cart');
+import mongoose from 'mongoose';
+import Item from './item.js';
+import Cart from './cart.js';
 
 const orderSchema = new mongoose.Schema(
 	{
@@ -181,4 +181,4 @@ orderSchema.statics.orderShipped = async function (id, owner) {
 };
 
 const Order = mongoose.model('Order', orderSchema, 'order');
-module.exports = Order;
+export default Order;

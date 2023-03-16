@@ -1,15 +1,23 @@
-const config = require('config');
-const express = require('express');
-require('express-async-errors');
+import config from 'config';
+import express from 'express';
+import 'express-async-errors';
+import debug from 'debug';
+import routing from './start/routes.js';
+import { init } from './database/db.js';
+import logging from './start/logging.js';
+import production from './start/prod.js';
+import configuration from './start/config.js';
+
+const sDebugger = debug('app:startup');
 const app = express();
 
-require('./start/logging')(app);
-require('./start/config')();
-require('./start/routes')(app);
-require('./database/db').init();
-require('./start/prod')(app);
+logging(app);
+configuration();
+routing(app);
+init();
+production(app);
 
 const port = config.get('port') || 3000;
-const server = app.listen(port, () => console.log(`Listening on port ${port}...`));
+const server = app.listen(port, () => sDebugger(`Listening on port ${port}...`));
 
-module.exports = server;
+export default server;

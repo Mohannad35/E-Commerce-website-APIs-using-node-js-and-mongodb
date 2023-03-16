@@ -1,10 +1,12 @@
-const auth = require('../middleware/auth');
-const isVendor = require('../middleware/vendor');
-const ItemController = require('../controller/item');
-const router = require('express').Router();
-const validateObjectId = require('../middleware/validateObjectId');
-const validate = require('../middleware/validateReq');
-const Validator = require('../middleware/Validator');
+import { Router } from 'express';
+import _ from 'lodash';
+import auth from '../middleware/auth.js';
+import isVendor from '../middleware/vendor.js';
+import validate from '../middleware/validateReq.js';
+import Validator from '../middleware/validator.js';
+import ItemController from '../controller/item.js';
+import validateObjectId from '../middleware/validateObjectId.js';
+const router = Router();
 
 // fetch all items
 router.get('/', ItemController.items);
@@ -25,4 +27,4 @@ router.patch(
 // delete item
 router.delete('/:id', [auth, isVendor, validateObjectId], ItemController.deleteItem);
 
-module.exports = router;
+export default router;

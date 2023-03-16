@@ -1,10 +1,12 @@
-const router = require('express').Router();
-const auth = require('../middleware/auth');
-const isAdmin = require('../middleware/admin');
-const UserController = require('../controller/user');
-const validateObjectId = require('../middleware/validateObjectId');
-const validate = require('../middleware/validateReq');
-const Validator = require('../middleware/Validator');
+import { Router } from 'express';
+import _ from 'lodash';
+import auth from '../middleware/auth.js';
+import isAdmin from '../middleware/admin.js';
+import validate from '../middleware/validateReq.js';
+import Validator from '../middleware/validator.js';
+import UserController from '../controller/user.js';
+import validateObjectId from '../middleware/validateObjectId.js';
+const router = Router();
 
 // refresh auth token
 router.get('/refresh-jwt', [auth], UserController.refreshToken);
@@ -67,4 +69,4 @@ router.post(
 	UserController.changeAccountType
 );
 
-module.exports = router;
+export default router;

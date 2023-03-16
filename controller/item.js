@@ -1,12 +1,10 @@
-const Item = require('../model/item');
-const Category = require('../model/category');
-const itemDebugger = require('debug')('app:item');
-const _ = require('lodash');
+import _ from 'lodash';
+import Category from '../model/category.js';
+import Item from './../model/item.js';
 
-class ItemController {
+export default class ItemController {
 	// get all items from database and return them as JSON objects
 	static async items(req, res) {
-		itemDebugger(req.headers['user-agent']);
 		const { query } = req;
 		const { pageNumber, pageSize, items } = await Item.getItems(query);
 		res.send({ pageNumber, pageSize, length: items.length, items });
@@ -14,7 +12,6 @@ class ItemController {
 
 	// get item by id from database and return it as JSON object
 	static async getOneItem(req, res) {
-		itemDebugger(req.headers['user-agent']);
 		const item = await Item.getItemById(req.params.id);
 		if (!item) return res.status(404).send({ message: 'Item not found' });
 		res.status(200).send({ item });
@@ -22,7 +19,6 @@ class ItemController {
 
 	// add new item to Database
 	static async addItem(req, res) {
-		itemDebugger(req.headers['user-agent']);
 		const { _id, name } = req.user;
 		const { categoryId, ...body } = req.body;
 		const category = await Category.findById(categoryId, 'title');
@@ -38,7 +34,6 @@ class ItemController {
 	}
 
 	static async updateItem(req, res) {
-		itemDebugger(req.headers['user-agent']);
 		let { body } = req;
 		const { _id: owner } = req.user;
 		const { id } = req.params;
@@ -57,7 +52,6 @@ class ItemController {
 	}
 
 	static async deleteItem(req, res) {
-		itemDebugger(req.headers['user-agent']);
 		const { _id: owner } = req.user;
 		const { id } = req.params;
 		const { err, status, message, item } = await Item.deleteItem(id, owner);
@@ -65,5 +59,3 @@ class ItemController {
 		res.send({ itemid: item._id, delete: true });
 	}
 }
-
-module.exports = ItemController;

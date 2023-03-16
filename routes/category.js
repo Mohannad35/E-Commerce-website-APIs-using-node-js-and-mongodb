@@ -1,10 +1,11 @@
-const auth = require('../middleware/auth');
-const isAdmin = require('../middleware/admin');
-const CategoryController = require('../controller/category');
-const router = require('express').Router();
-const validateObjectId = require('../middleware/validateObjectId');
-const validate = require('../middleware/validateReq');
-const Validator = require('../middleware/Validator');
+import { Router } from 'express';
+import auth from '../middleware/auth.js';
+import isAdmin from '../middleware/admin.js';
+import validate from '../middleware/validateReq.js';
+import Validator from '../middleware/validator.js';
+import CategoryController from '../controller/category.js';
+import validateObjectId from '../middleware/validateObjectId.js';
+const router = Router();
 
 // fetch all Categories
 router.get('/', CategoryController.categories);
@@ -29,4 +30,4 @@ router.patch(
 // delete a Category
 router.delete('/:id', [auth, isAdmin, validateObjectId], CategoryController.deleteCategory);
 
-module.exports = router;
+export default router;

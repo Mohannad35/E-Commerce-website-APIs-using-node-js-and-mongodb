@@ -1,4 +1,4 @@
-var mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const categorySchema = new mongoose.Schema(
 	{
@@ -87,4 +87,4 @@ categorySchema.statics.deleteCategory = async function (id) {
 };
 
 const Category = mongoose.model('Category', categorySchema, 'category');
-module.exports = Category;
+export default Category;

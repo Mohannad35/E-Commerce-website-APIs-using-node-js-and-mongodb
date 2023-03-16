@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const itemSchema = new mongoose.Schema(
 	{
@@ -137,4 +137,4 @@ itemSchema.statics.deleteItem = async function (id, owner) {
 };
 
 const Item = mongoose.model('Item', itemSchema, 'item');
-module.exports = Item;
+export default Item;

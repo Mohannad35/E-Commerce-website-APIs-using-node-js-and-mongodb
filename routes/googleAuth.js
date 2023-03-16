@@ -1,10 +1,11 @@
-const config = require('config');
-const _ = require('lodash');
-const jwt = require('jsonwebtoken');
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
-const router = require('express').Router();
-const User = require('../model/user');
+import { Router } from 'express';
+import config from 'config';
+import _ from 'lodash';
+import jwt from 'jsonwebtoken';
+import passport from 'passport';
+import { OAuth2Strategy as GoogleStrategy } from 'passport-google-oauth';
+import User from '../model/user.js';
+const router = Router();
 
 passport.use(
 	new GoogleStrategy(
@@ -87,4 +88,4 @@ function generateToken(user) {
 	);
 }
 
-module.exports = router;
+export default router;

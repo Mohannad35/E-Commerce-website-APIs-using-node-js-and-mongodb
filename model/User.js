@@ -1,11 +1,11 @@
-const mongoose = require('mongoose');
-const validator = require('validator');
-const bcrypt = require('bcryptjs');
-var { sha224, sha256 } = require('js-sha256');
-const jwt = require('jsonwebtoken');
-const moment = require('moment');
-const config = require('config');
-const Request = require('./request');
+import mongoose from 'mongoose';
+import validator from 'validator';
+import bcrypt from 'bcryptjs';
+// import { sha224, sha256 } from 'js-sha256';
+import jwt from 'jsonwebtoken';
+import moment from 'moment';
+import config from 'config';
+import Request from './request.js';
 
 const userSchema = new mongoose.Schema(
 	{
@@ -284,4 +284,4 @@ userSchema.statics.banUser = async function (userId) {
 };
 
 const User = mongoose.model('User', userSchema, 'user');
-module.exports = User;
+export default User;

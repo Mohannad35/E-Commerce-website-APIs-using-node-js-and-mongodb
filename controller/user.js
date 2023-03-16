@@ -1,17 +1,15 @@
-const userDebugger = require('debug')('app:user');
-const jwt = require('jsonwebtoken');
-const _ = require('lodash');
-const moment = require('moment');
-const sgMail = require('@sendgrid/mail');
-const crypto = require('crypto');
-const config = require('config');
-const User = require('../model/user');
-const logger = require('../middleware/logger');
+import _ from 'lodash';
+import jwt from 'jsonwebtoken';
+import moment from 'moment';
+import sgMail from '@sendgrid/mail';
+import crypto from 'crypto';
+import config from 'config';
+import User from './../model/user.js';
+import logger from '../middleware/logger.js';
 sgMail.setApiKey(config.get('sendgrid_apikey'));
 
-class UserController {
+export default class UserController {
 	static async users(req, res) {
-		userDebugger(req.headers['user-agent']);
 		const { query } = req;
 		const { pageNumber, pageSize, users } = await User.getUsers(query);
 		if (users.length > 0) return res.send({ pageNumber, pageSize, length: users.length, users });
@@ -19,14 +17,12 @@ class UserController {
 	}
 
 	static async stats(req, res) {
-		userDebugger(req.headers['user-agent']);
 		const { query } = req;
 		const count = await User.stats(query);
 		return res.send({ length: count });
 	}
 
 	static async deleteUser(req, res) {
-		userDebugger(req.headers['user-agent']);
 		const { id } = req.body;
 		const { err, status, message, user } = await User.deleteUser(id);
 		if (err) return res.status(status).send({ message });
@@ -34,7 +30,6 @@ class UserController {
 	}
 
 	static async banUser(req, res) {
-		userDebugger(req.headers['user-agent']);
 		const { id } = req.body;
 		if (id === req.user._id) return res.status(400).send({ message: `You can't ban yourself` });
 		const { err, status, message, user } = await User.banUser(id);
@@ -45,7 +40,6 @@ class UserController {
 
 	// create a user account and return the user and the logged in token
 	static async signup(req, res) {
-		userDebugger(req.headers['user-agent']);
 		const { body } = req;
 		const { err, status, message, user, token } = await User.signup(body);
 		if (err) return res.status(status).send({ message });
@@ -81,7 +75,6 @@ class UserController {
 
 	// login a user and return the user logged in token
 	static async login(req, res) {
-		userDebugger(req.headers['user-agent']);
 		const { email, password } = req.body;
 		const { err, status, message, token, user } = await User.loginUser(email, password);
 		if (err) return res.status(status).send({ message });
@@ -113,7 +106,6 @@ class UserController {
 
 	// change user account type
 	static async changeAccountType(req, res) {
-		userDebugger(req.headers['user-agent']);
 		const { id } = req.params;
 		const { type } = req.body;
 		const user = await User.changeAccountType(id, type);
@@ -124,7 +116,6 @@ class UserController {
 
 	// edit user information (name and email)
 	static async editInfo(req, res) {
-		userDebugger(req.headers['user-agent']);
 		// prettier-ignore
 		const { user: { _id } , body } = req;
 		const user = await User.editInfo(_id, body);
@@ -141,7 +132,6 @@ class UserController {
 
 	// change user password
 	static async changePassword(req, res) {
-		userDebugger(req.headers['user-agent']);
 		// prettier-ignore
 		const { user: { _id }, body: { oldPassword, newPassword } } = req
 		if (oldPassword === newPassword)
@@ -246,5 +236,3 @@ class UserController {
 		// render or redirect to change password page
 	}
 }
-
-module.exports = UserController;

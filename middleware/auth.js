@@ -1,12 +1,9 @@
-const jwt = require('jsonwebtoken');
-const logger = require('./logger');
-const User = require('../model/user');
-const bcrypt = require('bcryptjs');
-const config = require('config');
-const _ = require('lodash');
-var { sha224, sha256 } = require('js-sha256');
+import _ from 'lodash';
+import config from 'config';
+import jwt from 'jsonwebtoken';
+import logger from './logger.js';
 
-module.exports = async (req, res, next) => {
+export default async (req, res, next) => {
 	try {
 		let token = req.header('Authorization');
 		if (!token)

@@ -1,10 +1,11 @@
-const auth = require('../middleware/auth');
-const isAdmin = require('../middleware/admin');
-const ListController = require('../controller/list');
-const router = require('express').Router();
-const validateObjectId = require('../middleware/validateObjectId');
-const validate = require('../middleware/validateReq');
-const Validator = require('../middleware/Validator');
+import { Router } from 'express';
+import _ from 'lodash';
+import auth from '../middleware/auth.js';
+import validate from '../middleware/validateReq.js';
+import Validator from '../middleware/validator.js';
+import ListController from '../controller/list.js';
+import validateObjectId from '../middleware/validateObjectId.js';
+const router = Router();
 
 // fetch all Lists
 router.get('/', [auth], ListController.lists);
@@ -35,4 +36,4 @@ router.delete('/items/:id', [auth, validateObjectId], ListController.removeFromL
 // delete a list
 router.delete('/:id', [auth, validateObjectId], ListController.deleteList);
 
-module.exports = router;
+export default router;

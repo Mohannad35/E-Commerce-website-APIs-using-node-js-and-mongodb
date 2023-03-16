@@ -1,4 +1,4 @@
-module.exports = function (obj, validator) {
+export default function (obj, validator) {
 	return (req, res, next) => {
 		const { error } = validator(req[obj]);
 		if (error) {
@@ -8,4 +8,4 @@ module.exports = function (obj, validator) {
 		}
 		next();
 	};
-};
+}

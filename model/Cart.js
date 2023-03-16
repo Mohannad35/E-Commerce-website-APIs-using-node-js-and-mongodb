@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Item = require('./item');
+import mongoose from 'mongoose';
+import Item from './item.js';
 
 const cartSchema = new mongoose.Schema(
 	{
@@ -90,4 +90,4 @@ cartSchema.statics.reduceItemInCart = async function (owner, itemId, quantity = 
 };
 
 const Cart = mongoose.model('Cart', cartSchema, 'cart');
-module.exports = Cart;
+export default Cart;

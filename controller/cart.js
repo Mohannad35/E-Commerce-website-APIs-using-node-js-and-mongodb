@@ -1,10 +1,8 @@
-const Cart = require('../model/cart');
-const cartDebugger = require('debug')('app:cart');
+import Cart from '../model/cart.js';
 
-class CartController {
+export default class CartController {
 	// get all the items in a user cart from the Database and return them as JSON
 	static async getCartItems(req, res) {
-		cartDebugger(req.headers['user-agent']);
 		const { full } = req.query;
 		const { _id: owner, name: ownerName } = req.user;
 		const cart = await Cart.getCart(owner, full);
@@ -14,7 +12,6 @@ class CartController {
 
 	// add an item to a user cart or create a new cart if the user does not have an existing cart
 	static async addItemToCart(req, res) {
-		cartDebugger(req.headers['user-agent']);
 		const { _id: owner } = req.user;
 		const { id: itemId } = req.params;
 		const { quantity } = req.body;
@@ -26,7 +23,6 @@ class CartController {
 
 	// add an item to a user cart or create a new cart if the user does not have an existing cart
 	static async addItemsToCart(req, res) {
-		cartDebugger(req.headers['user-agent']);
 		const { _id: owner } = req.user;
 		const { items } = req.body;
 		let err, status, message, cart;
@@ -40,7 +36,6 @@ class CartController {
 
 	// reduce an item from a user cart or delete it
 	static async reduceItemInCart(req, res) {
-		cartDebugger(req.headers['user-agent']);
 		const { _id: owner } = req.user;
 		const { id: itemId } = req.params;
 		const { quantity } = req.body;
@@ -50,5 +45,3 @@ class CartController {
 		res.status(200).send({ cartid: cart._id, update: true });
 	}
 }
-
-module.exports = CartController;

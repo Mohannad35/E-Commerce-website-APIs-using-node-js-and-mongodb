@@ -1,7 +1,7 @@
-const logger = require('../middleware/logger');
-const config = require('config');
+import config from 'config';
+import logger from '../middleware/logger.js';
 
-module.exports = function () {
+export default function () {
 	if (!config.has('jwtPrivateKey')) {
 		logger.error('FATAL ERROR: jwtPrivateKey is not defined.');
 		process.exit(1);
@@ -16,4 +16,4 @@ module.exports = function () {
 			process.exit(1);
 		}
 	}
-};
+}

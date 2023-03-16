@@ -1,10 +1,11 @@
-const config = require('config');
-const _ = require('lodash');
-const jwt = require('jsonwebtoken');
-const passport = require('passport');
-const FacebookStrategy = require('passport-facebook').Strategy;
-const router = require('express').Router();
-const User = require('../model/user');
+import { Router } from 'express';
+import config from 'config';
+import _ from 'lodash';
+import jwt from 'jsonwebtoken';
+import passport from 'passport';
+import { Strategy as FacebookStrategy } from 'passport-facebook';
+import User from '../model/user.js';
+const router = Router();
 
 passport.use(
 	new FacebookStrategy(
@@ -88,4 +89,4 @@ function generateToken(user) {
 	);
 }
 
-module.exports = router;
+export default router;

@@ -1,9 +1,10 @@
-const auth = require('../middleware/auth');
-const CartController = require('../controller/cart');
-const router = require('express').Router();
-const validateObjectId = require('../middleware/validateObjectId');
-const validate = require('../middleware/validateReq');
-const Validator = require('../middleware/Validator');
+import { Router } from 'express';
+import auth from '../middleware/auth.js';
+import validate from '../middleware/validateReq.js';
+import Validator from '../middleware/validator.js';
+import CartController from '../controller/cart.js';
+import validateObjectId from '../middleware/validateObjectId.js';
+const router = Router();
 
 // get cart items
 router.get('/', [auth], CartController.getCartItems);
@@ -25,4 +26,4 @@ router.delete(
 	CartController.reduceItemInCart
 );
 
-module.exports = router;
+export default router;

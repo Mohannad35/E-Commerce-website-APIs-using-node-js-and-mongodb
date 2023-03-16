@@ -1,5 +1,5 @@
-const User = require('../model/user');
-const moment = require('moment');
+import moment from 'moment';
+import { User } from './../model/user.js';
 
 let admin = {
 	name: `Ahmed`,
@@ -61,7 +61,7 @@ function generateUser(num, type = 'client') {
 	}
 }
 
-module.exports = async function () {
+export default async function () {
 	console.log(`seeding users...`);
 	console.log(await User.deleteMany({}));
 	let user = new User(admin);
@@ -70,4 +70,4 @@ module.exports = async function () {
 		user = new User(generateUser(i, i % 4 ? 'client' : 'vendor'));
 		await user.save();
 	}
-};
+}

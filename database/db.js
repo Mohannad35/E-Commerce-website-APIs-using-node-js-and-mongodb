@@ -1,9 +1,11 @@
-const mongoose = require('mongoose');
-const config = require('config');
-const dbDebugger = require('debug')('app:db');
-mongoose.set('strictQuery', true);
+import mongoose from 'mongoose';
+import config from 'config';
+import debug from 'debug';
 
-async function init() {
+mongoose.set('strictQuery', true);
+const dbDebugger = debug('app:db');
+
+export async function init() {
 	let db = await mongoose
 		.connect(config.get('mongodb_url'), {
 			useUnifiedTopology: true,
@@ -20,8 +22,6 @@ async function init() {
 	return db;
 }
 
-async function close(db) {
+export async function close(db) {
 	await db.connection.close();
 }
-
-module.exports = { init, close };
