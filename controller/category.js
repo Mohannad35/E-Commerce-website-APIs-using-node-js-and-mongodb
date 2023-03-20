@@ -4,10 +4,27 @@ import Category from '../model/category.js';
 export default class CategoryController {
 	// get all items from database and return them as JSON objects
 	static async categories(req, res) {
-		const { pageNumber, pageSize, sortBy } = req.query;
-		const categories = await Category.getCategories(pageNumber, pageSize, sortBy);
-		const remainingCategories = await Category.remainingCategories(pageNumber, pageSize, 100);
-		res.send({ pageLength: categories.length, remainingCategories, categories });
+		const { main, ...query } = req.query;
+		// let categories, pageNumber, pageSize, total, result;
+		// if (main) categories = await Category.getMainCategories(query);
+		// else {
+		// 	result = await Category.getCategories(query);
+		// 	categories = result.categories;
+		// 	pageNumber = result.pageNumber;
+		// 	pageSize = result.pageSize;
+		// 	total = result.total;
+		// }
+		const { pageNumber, pageSize, total, categories } =
+			main === 'true'
+				? await Category.getMainCategories(query)
+				: await Category.getCategories(query);
+		res.send({ length: categories.length, pageNumber, pageSize, total, categories });
+	}
+
+	static async subCategories(req, res) {
+		const { id: parentId } = req.params;
+		const { pageNumber, pageSize, total, categories } = await Category.getCategories({ parentId });
+		res.send({ length: categories.length, pageNumber, pageSize, total, categories });
 	}
 
 	// get item by id from database and return it as JSON object

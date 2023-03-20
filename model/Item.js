@@ -1,10 +1,14 @@
+import { unlink } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import mongoose from 'mongoose';
+import logger from '../middleware/logger.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const itemSchema = new mongoose.Schema(
 	{
-		img: {
-			type: String
-		},
 		name: {
 			type: String,
 			required: true,
@@ -13,48 +17,26 @@ const itemSchema = new mongoose.Schema(
 			maxLength: 255,
 			match: /^[\p{L}].*$/u
 		},
-		description: {
-			type: String,
+		img: [{ type: String, trim: true }],
+		description: { type: String, required: true },
+		quantity: { type: Number, required: true, min: [0, 'Invalid quantity'] },
+		price: { type: Number, required: true, min: [0, 'Invalid price'] },
+		sold: { type: Number, default: 0, min: [0, 'Invalid sold count'] },
+		rating: { type: Number, default: 0, min: [0, 'Invalid rating'], max: [5, 'Invalid rating'] },
+		ratingCount: { type: Number, default: 0, min: [0, 'Invalid rating count'] },
+		category: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Category',
 			required: true
 		},
-		price: {
-			type: Number,
-			required: true,
-			min: [0, 'Invalid price']
-		},
-		quantity: {
-			type: Number,
-			required: true,
-			min: [0, 'Invalid quantity']
-		},
-		category: {
-			_id: {
-				type: mongoose.Schema.Types.ObjectId,
-				ref: 'Category',
-				required: true
-			},
-			title: {
-				type: String,
-				trim: true,
-				minLength: 3,
-				maxLength: 255
-			},
-			slug: {
-				type: String
-			}
-		},
 		owner: {
-			_id: {
-				type: mongoose.Schema.Types.ObjectId,
-				ref: 'User',
-				required: true
-			},
-			name: {
-				type: String,
-				trim: true,
-				minLength: 3,
-				maxLength: 255
-			}
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User',
+			required: true
+		},
+		brand: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Brand'
 		}
 	},
 	{
@@ -63,8 +45,8 @@ const itemSchema = new mongoose.Schema(
 );
 
 itemSchema.statics.getItems = async function (query) {
-	let { skip, sort, limit, pageNumber, pageSize } = query;
-	let { name, price, categoryId, categoryTitle, categorySlug, ownerId, ownerName } = query;
+	let { skip, sort, limit, pageNumber, pageSize, name, price, sold, category, owner, brand } =
+		query;
 	if (pageNumber || pageSize) {
 		limit = undefined;
 		skip = undefined;
@@ -74,49 +56,69 @@ itemSchema.statics.getItems = async function (query) {
 	skip = (pageNumber - 1) * pageSize || skip || 0;
 	limit = pageSize || limit || 1000;
 	sort = sort || 'name';
-	if (sort) sort = sort.split(',').join(' ');
-	let items;
-	if (name) {
+	sort = sort.split(',').join(' ');
+	let items, total;
+	if (sold) {
+		sort = '-sold';
+		items = await Item.find({}, {}, { skip, limit, sort });
+		total = await Item.countDocuments({});
+	} else if (name) {
 		name = new RegExp(name.replace('-', ' '), 'i');
 		items = await Item.find({ name }, {}, { skip, limit, sort });
-	} else if (categoryId) {
-		items = await Item.find({ 'category._id': categoryId }, {}, { skip, limit, sort });
-	} else if (categorySlug) {
-		categorySlug = new RegExp(categorySlug, 'i');
-		items = await Item.find({ 'category.slug': categorySlug }, {}, { skip, limit, sort });
-	} else if (categoryTitle) {
-		categoryTitle = new RegExp(categoryTitle.replace('-', ' '), 'i');
-		items = await Item.find({ 'category.title': categoryTitle }, {}, { skip, limit, sort });
-	} else if (ownerId) items = await Item.find({ 'owner._id': ownerId }, {}, { skip, limit, sort });
-	else if (ownerName) {
-		ownerName = new RegExp(ownerName.replace('-', ' '), 'i');
-		items = await Item.find({ 'owner.name': ownerName }, {}, { skip, limit, sort });
+		total = await Item.countDocuments({ name });
 	} else if (price) {
 		const [min, max] = price.split('-'); // 300-1000
 		items = await Item.find({ price: { $gte: min, $lte: max } }, {}, { skip, limit, sort });
-	} else items = await Item.find({}, {}, { skip, limit, sort });
-	return { pageNumber, pageSize, items };
+		total = await Item.countDocuments({ price: { $gte: min, $lte: max } });
+	} else if (brand) {
+		items = await Item.find({ brand }, {}, { skip, limit, sort });
+		total = await Item.countDocuments({ brand });
+	} else if (category) {
+		items = await Item.find({ category }, {}, { skip, limit, sort });
+		total = await Item.countDocuments({ category });
+	} else if (owner) {
+		items = await Item.find({ owner }, {}, { skip, limit, sort });
+		total = await Item.countDocuments({ owner });
+	} else {
+		items = await Item.find({}, {}, { skip, limit, sort });
+		total = await Item.countDocuments({});
+	}
+	const numberOfPages = Math.ceil(total / pageSize);
+	const remaining = total - skip - limit > 0 ? total - skip - limit : 0;
+	if (pageNumber)
+		return {
+			total,
+			remaining,
+			paginationResult: {
+				currentPage: parseInt(pageNumber),
+				numberOfPages,
+				limit: parseInt(pageSize)
+			},
+			items
+		};
+	else return { total, remaining, items };
 };
 
-itemSchema.statics.remainingItems = async function (pageNumber = 1, pageSize = 20, limit = 100) {
-	const count = await Item.countDocuments({}, { skip: pageNumber * pageSize, limit });
-	return count <= 100 ? count : '+100';
+itemSchema.statics.getItemById = async function (id, populate) {
+	if (populate)
+		return await Item.findById(id)
+			.populate('owner', 'name email')
+			.populate('category')
+			.populate('brand');
+	return await Item.findById(id);
 };
 
-itemSchema.statics.getItemById = async function (id) {
-	return await Item.findById(id, 'owner name description category price quantity');
-};
-
-itemSchema.statics.createItem = async function (owner, category, body) {
-	const { name, description, quantity } = body;
+itemSchema.statics.createItem = async function (owner, body, images) {
+	const { category, brand, name, description, quantity } = body;
 	let { price } = body;
 	const dot = price.toString().indexOf('.');
 	if (dot !== -1) price = parseFloat(price.toString().slice(0, dot + 3));
-	let item = new Item({ owner, category, name, description, category, price, quantity });
+	let item = new Item({ brand, owner, category, name, description, quantity, price });
+	images.forEach(image => item.img.push(`http://localhost:5000/images/${image.filename}`));
 	return item;
 };
 
-itemSchema.statics.editItem = async function (id, owner, updates, body) {
+itemSchema.statics.editItem = async function (id, owner, updates, body, images, deleteImages) {
 	const item = await Item.findById(id);
 	if (!item) return { err: true, status: 404, message: 'Item not found' };
 	if (!item.owner._id.equals(owner)) return { err: true, status: 403, message: 'Access denied' };
@@ -125,6 +127,23 @@ itemSchema.statics.editItem = async function (id, owner, updates, body) {
 		if (dot !== -1) body.price = parseFloat(body.price.toString().slice(0, dot + 3));
 	}
 	updates.forEach(update => (item[update] = body[update]));
+	images &&
+		images.forEach(image => item.img.push(`http://localhost:5000/images/${image.filename}`));
+	if (typeof deleteImages === 'object') {
+		deleteImages.forEach(image => (item.img = item.img.filter(value => value !== image)));
+		deleteImages.forEach(async image => {
+			await unlink(
+				`${__dirname.replace(/model/, '')}public/images/${image.replace(/.*images\//, '')}`,
+				err => err && logger.error(err.message, err)
+			);
+		});
+	} else if (typeof deleteImages === 'string') {
+		item.img = item.img.filter(img => img !== deleteImages);
+		await unlink(
+			`${__dirname.replace(/model/, '')}public/images/${deleteImages.replace(/.*images\//, '')}`,
+			err => err && logger.error(err.message, err)
+		);
+	}
 	return { item };
 };
 
@@ -132,6 +151,12 @@ itemSchema.statics.deleteItem = async function (id, owner) {
 	const item = await Item.findById(id);
 	if (!item) return { err: true, status: 404, message: 'Item not found' };
 	if (!item.owner._id.equals(owner)) return { err: true, status: 403, message: 'Access denied' };
+	item.img.forEach(async image => {
+		await unlink(
+			`${__dirname.replace(/model/, '')}public/images/${image.replace(/.*images\//, '')}`,
+			err => err && logger.error(err.message, err)
+		);
+	});
 	await Item.deleteOne({ _id: item._id });
 	return { item };
 };

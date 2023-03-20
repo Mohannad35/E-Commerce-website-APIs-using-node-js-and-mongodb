@@ -29,17 +29,45 @@ const categorySchema = new mongoose.Schema(
 	}
 );
 
-categorySchema.statics.getCategories = async function (
-	pageNumber = 1,
-	pageSize = 20,
-	sort = 'name'
-) {
-	const categories = await Category.find(
-		{},
-		{},
-		{ skip: (pageNumber - 1) * pageSize, limit: pageSize, sort }
-	);
-	return categories;
+categorySchema.statics.getCategories = async function (query) {
+	let { title, parentId, slug, skip, limit, pageNumber, pageSize, sort } = query;
+	if (pageNumber || pageSize) {
+		skip = undefined;
+		limit = undefined;
+	}
+	if (pageNumber && !pageSize) pageSize = 20;
+	if (!pageNumber && pageSize) pageNumber = 1;
+	skip = (pageNumber - 1) * pageSize || skip || 0;
+	limit = pageSize || limit || 1000;
+	sort = sort || 'title';
+	let categories;
+	if (title) {
+		title = new RegExp(title.replace('-', ' '), 'i');
+		categories = await Category.find({ title }, {}, { skip, limit, sort });
+	} else if (parentId)
+		categories = await Category.find({ 'parent.parentId': parentId }, {}, { skip, limit, sort });
+	else if (slug) {
+		slug = new RegExp(slug, 'i');
+		categories = await Category.find({ slug }, {}, { skip, limit, sort });
+	} else categories = await Category.find({}, {}, { skip, limit, sort });
+	const total = await Category.countDocuments();
+	return { pageNumber, pageSize, total, categories };
+};
+
+categorySchema.statics.getMainCategories = async function (query) {
+	let { skip, limit, pageNumber, pageSize, sort } = query;
+	if (pageNumber || pageSize) {
+		skip = undefined;
+		limit = undefined;
+	}
+	if (pageNumber && !pageSize) pageSize = 20;
+	if (!pageNumber && pageSize) pageNumber = 1;
+	skip = (pageNumber - 1) * pageSize || skip || 0;
+	limit = pageSize || limit || 1000;
+	sort = sort || 'title';
+	let categories = await Category.find({ parent: null }, {}, { skip, limit, sort });
+	const total = await Category.countDocuments({ parent: null });
+	return { pageNumber, pageSize, total, categories };
 };
 
 categorySchema.statics.remainingCategories = async function (

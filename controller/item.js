@@ -1,18 +1,20 @@
 import _ from 'lodash';
 import Category from '../model/category.js';
+import Brand from '../model/brand.js';
 import Item from './../model/item.js';
 
 export default class ItemController {
 	// get all items from database and return them as JSON objects
 	static async items(req, res) {
 		const { query } = req;
-		const { pageNumber, pageSize, items } = await Item.getItems(query);
-		res.send({ pageNumber, pageSize, length: items.length, items });
+		const { total, remaining, paginationResult, items } = await Item.getItems(query);
+		res.send({ length: items.length, total, remaining, paginationResult, items });
 	}
 
 	// get item by id from database and return it as JSON object
 	static async getOneItem(req, res) {
-		const item = await Item.getItemById(req.params.id);
+		const { populate } = req.query;
+		const item = await Item.getItemById(req.params.id, populate);
 		if (!item) return res.status(404).send({ message: 'Item not found' });
 		res.status(200).send({ item });
 	}
@@ -20,35 +22,28 @@ export default class ItemController {
 	// add new item to Database
 	static async addItem(req, res) {
 		const { _id, name } = req.user;
-		const { categoryId, ...body } = req.body;
-		const category = await Category.findById(categoryId, 'title');
-		if (!category) return res.status(404).send({ error: true, message: 'Category not found' });
-		let item = await Item.createItem({ _id, name }, category, body);
+		const { body } = req;
+		let item = await Item.createItem(_id, body, req.files);
 		await item.save();
-		item = _(item)
-			.pick(['_id', 'name', 'description', 'price', 'quantity'])
-			.set('owner', name)
-			.set('category', category.title)
-			.value();
 		res.status(201).send({ itemid: item._id, create: true, item });
 	}
 
 	static async updateItem(req, res) {
-		let { body } = req;
+		const { deleteImages, ...body } = req.body;
 		const { _id: owner } = req.user;
 		const { id } = req.params;
-		let updates = Object.keys(body);
-		if (updates.includes('categoryId')) {
-			const category = await Category.findById(body.categoryId, 'title');
-			if (!category) return res.status(404).send({ error: true, message: 'Category not found' });
-			_.unset(body, 'categoryId');
-			_.set(body, 'category', category);
-			updates = Object.keys(body);
-		}
-		const { err, status, message, item } = await Item.editItem(id, owner, updates, body);
+		const updates = Object.keys(body);
+		const { err, status, message, item } = await Item.editItem(
+			id,
+			owner,
+			updates,
+			body,
+			req.files,
+			deleteImages
+		);
 		if (err) return res.status(status).send({ error: true, message });
 		await item.save();
-		res.status(200).send({ itemid: item._id, update: true });
+		res.status(200).send({ itemid: item._id, update: true, item });
 	}
 
 	static async deleteItem(req, res) {

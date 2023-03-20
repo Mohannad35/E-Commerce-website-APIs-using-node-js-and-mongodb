@@ -39,8 +39,13 @@ const JoiDate = Joi.date()
 	.message('You must be younger than 120 years');
 const joiAccountType = Joi.string().valid('client', 'admin', 'vendor');
 const joiDescription = Joi.string().min(3).max(1024);
-const joiPrice = Joi.number().positive();
-const joiQuantity = Joi.number().integer().positive();
+const joiPrice = Joi.string()
+	.pattern(/^[0-9.]+$/)
+	.message('pageNumber should be a positive number');
+const joiQuantity = Joi.string()
+	.pattern(/^[0-9]+$/)
+	.message('pageNumber should be a positive integer');
+const joiImage = Joi.string().uri({ allowQuerySquareBrackets: true });
 
 export default class Validator {
 	// common
@@ -109,7 +114,6 @@ export default class Validator {
 	}
 
 	static signup(account) {
-		console.log(moment().subtract(10, 'years').format('YYYY-MM-DD'));
 		const Schema = Joi.object({
 			name: joiName.required(),
 			email: joiEmail.required(),
@@ -207,11 +211,9 @@ export default class Validator {
 			sort: Joi.string()
 				.pattern(/^[A-Za-z_\-,.]+$/)
 				.message('sort should only contain letters and _-,.'),
-			categoryId: Joi.objectId(),
-			categorySlug: Joi.string(),
-			categoryTitle: Joi.string(),
-			ownerId: Joi.objectId(),
-			ownerName: Joi.string(),
+			category: Joi.objectId(),
+			owner: Joi.objectId(),
+			brand: Joi.objectId(),
 			price: Joi.string()
 				.pattern(/^[0-9]+-[0-9]+$/)
 				.message('price should be a positive integer'),
@@ -224,21 +226,36 @@ export default class Validator {
 		const Schema = Joi.object({
 			name: joiName.required(),
 			description: joiDescription.required(),
-			categoryId: joiId.required(),
+			category: joiId.required(),
 			price: joiPrice.required(),
-			quantity: joiQuantity.required()
+			quantity: joiQuantity.required(),
+			brand: joiId,
+			images: Joi.any()
 		});
 		return Schema.validate(item, { convert: false, abortEarly: false });
+	}
+
+	static addImg(img) {
+		const Schema = Joi.object({ img: joiImage.required() });
+		return Schema.validate(img, { convert: false, abortEarly: false });
+	}
+
+	static delImg(img) {
+		const Schema = Joi.object({ img: joiImage.required() });
+		return Schema.validate(img, { convert: false, abortEarly: false });
 	}
 
 	static updateItem(item) {
 		const Schema = Joi.object({
 			name: joiName,
 			description: joiDescription,
-			categoryId: joiId,
+			category: joiId,
+			brand: joiId,
 			price: joiPrice,
-			quantity: joiQuantity
-		}).or('name', 'description', 'category', 'price', 'quantity');
+			quantity: joiQuantity,
+			deleteImages: Joi.any(),
+			images: Joi.any()
+		});
 		return Schema.validate(item, { convert: false, abortEarly: false });
 	}
 
@@ -282,6 +299,33 @@ export default class Validator {
 	}
 
 	// category validations
+	static categories(categories) {
+		const Schema = Joi.object({
+			pageNumber: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('pageNumber should be a positive integer'),
+			pageSize: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('pageSize should be a positive integer'),
+			skip: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('skip should be a positive integer'),
+			limit: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('limit should be a positive integer'),
+			sort: Joi.string()
+				.pattern(/^[A-Za-z_\-,.]+$/)
+				.message('sort should only contain letters and _-,.'),
+			main: Joi.string()
+				.pattern(/^[A-Za-z_\-,.]+$/)
+				.message('sort should only contain letters and _-,.'),
+			title: joiTitle,
+			parentId: joiId,
+			slug: Joi.string()
+		});
+		return Schema.validate(categories, { convert: false, abortEarly: false });
+	}
+
 	static addCategory(category) {
 		const Schema = Joi.object({
 			title: joiTitle.required(),
@@ -296,6 +340,23 @@ export default class Validator {
 			parentId: joiId
 		}).or('title', 'parentId');
 		return Schema.validate(category, { convert: false, abortEarly: false });
+	}
+
+	// brand validations
+	static addBrand(brand) {
+		const Schema = Joi.object({
+			name: joiName.required(),
+			img: joiImage.required()
+		});
+		return Schema.validate(brand, { convert: false, abortEarly: false });
+	}
+
+	static updateBrand(brand) {
+		const Schema = Joi.object({
+			name: joiName,
+			img: joiImage
+		}).or('name', 'img');
+		return Schema.validate(brand, { convert: false, abortEarly: false });
 	}
 
 	// list validations

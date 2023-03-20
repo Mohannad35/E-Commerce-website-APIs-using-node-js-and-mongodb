@@ -8,7 +8,10 @@ import validateObjectId from '../middleware/validateObjectId.js';
 const router = Router();
 
 // fetch all Categories
-router.get('/', CategoryController.categories);
+router.get('/', [validate('query', Validator.categories)], CategoryController.categories);
+
+// fetch sub Categories
+router.get('/sub/:id', [validateObjectId], CategoryController.subCategories);
 
 // fetch a Category
 router.get('/:id', [validateObjectId], CategoryController.category);
