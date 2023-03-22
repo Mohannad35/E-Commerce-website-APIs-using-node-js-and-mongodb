@@ -1,10 +1,11 @@
-const auth = require('../middleware/auth');
-const isAdmin = require('../middleware/admin');
-const ListController = require('../controller/list');
-const router = require('express').Router();
-const validateObjectId = require('../middleware/validateObjectId');
-const validate = require('../middleware/validateReq');
-const Validator = require('../middleware/Validator');
+const { Router } = require('express');
+const _ = require('lodash');
+const auth = require('../middleware/auth.js');
+const validate = require('../middleware/validateReq.js');
+const Validator = require('../middleware/validator.js');
+const ListController = require('../controller/list.js');
+const validateObjectId = require('../middleware/validateObjectId.js');
+const router = Router();
 
 // fetch all Lists
 router.get('/', [auth], ListController.lists);

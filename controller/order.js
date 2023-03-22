@@ -1,11 +1,9 @@
-const Order = require('../model/order');
-const orderDebugger = require('debug')('app:order');
 const _ = require('lodash');
+const Order = require('../model/order');
 
 class OrderController {
 	// get order for the logged in user
 	static async getOrders(req, res) {
-		orderDebugger(req.headers['user-agent']);
 		const { _id: owner } = req.user;
 		const { pageNumber, pageSize, sortBy } = req.query;
 		const orders = await Order.getOrders(owner, pageNumber, pageSize, sortBy);
@@ -15,7 +13,6 @@ class OrderController {
 
 	// make an order
 	static async checkout(req, res) {
-		orderDebugger(req.headers['user-agent']);
 		const { _id: owner, name } = req.user;
 		const { paymentMethod, contactPhone, address } = req.body;
 		const { err, status, message, order } = await Order.checkout(
@@ -31,7 +28,6 @@ class OrderController {
 
 	// cancel an order
 	static async cancelOrder(req, res) {
-		orderDebugger(req.headers['user-agent']);
 		const { _id: owner } = req.user;
 		const { id } = req.params;
 		const { err, status, message, order } = await Order.cancelOrder(id, owner);
@@ -41,7 +37,6 @@ class OrderController {
 
 	// shipping order
 	static async confirmOrder(req, res) {
-		orderDebugger(req.headers['user-agent']);
 		const { id } = req.params;
 		const { err, status, message, order } = await Order.confirmOrder(id);
 		if (err) return res.status(status).send({ error: true, message });
@@ -51,7 +46,6 @@ class OrderController {
 
 	// order shipped
 	static async orderShipped(req, res) {
-		orderDebugger(req.headers['user-agent']);
 		const { id } = req.params;
 		const { err, status, message, order } = await Order.orderShipped(id);
 		if (err) return res.status(status).send({ error: true, message });

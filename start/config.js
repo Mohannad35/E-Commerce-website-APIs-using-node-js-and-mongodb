@@ -1,5 +1,5 @@
-const logger = require('../middleware/logger');
 const config = require('config');
+const logger = require('../middleware/logger.js');
 
 module.exports = function () {
 	if (!config.has('jwtPrivateKey')) {

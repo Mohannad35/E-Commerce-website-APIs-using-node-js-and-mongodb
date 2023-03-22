@@ -1,10 +1,11 @@
+const { Router } = require('express');
 const config = require('config');
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
-const FacebookStrategy = require('passport-facebook').Strategy;
-const router = require('express').Router();
-const User = require('../model/user');
+const { Strategy: FacebookStrategy } = require('passport-facebook');
+const User = require('../model/user.js');
+const router = Router();
 
 passport.use(
 	new FacebookStrategy(

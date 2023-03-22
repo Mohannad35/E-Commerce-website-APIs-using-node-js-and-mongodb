@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
-var slug = require('mongoose-slug-updater');
+import mongoose from 'mongoose';
+import slug from 'mongoose-slug-updater';
+import seed_category from './seed_category.js';
+import seed_item from './seed_item.js';
+import seed_user from './seed_user.js';
+import { init, close } from './db.js';
 mongoose.plugin(slug);
-const { init, close } = require('./db');
-const seed_user = require('./seed_user');
-const seed_category = require('./seed_category');
-const seed_item = require('./seed_item');
 
 async function run() {
 	const db = await init();

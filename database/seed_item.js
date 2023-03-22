@@ -1,15 +1,16 @@
-const Item = require('../model/item');
-const User = require('../model/user');
-const Category = require('../model/category');
+import { Category } from '../model/category.js';
+import { Item } from './../model/item.js';
+import { User } from './../model/user.js';
 
 function generateItemName(num) {
 	return `Product ${num < 10 ? `0${num}` : num}`;
 }
+
 function generateItemDesc(num) {
 	return `Description ${num < 10 ? `0${num}` : num}`;
 }
 
-module.exports = async function () {
+export default async function () {
 	console.log(`seeding items...`);
 	const categories = await Category.find({}, 'title slug', { limit: 1000 });
 	const users = await User.find({ accountType: 'vendor' }, 'name');
@@ -29,4 +30,4 @@ module.exports = async function () {
 		});
 		index += 1;
 	}
-};
+}

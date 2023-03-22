@@ -1,13 +1,12 @@
-const mongoose = require('mongoose');
-const request = require('supertest');
-const jwt = require('jsonwebtoken');
 const _ = require('lodash');
-const Item = require('../../model/item');
-const Category = require('../../model/category');
-const User = require('../../model/user');
+const request = require('supertest');
+const mongoose = require('mongoose');
+const Item = require('../../model/item.js');
+const User = require('../../model/user.js');
+const Category = require('../../model/category.js');
+const server = require('../../index.js');
 
 describe('/item', () => {
-	let server;
 	let name, email, password, accountType, phoneNumber;
 	let itemName, description, title, price, quantity;
 	async function getCategory() {
@@ -37,7 +36,6 @@ describe('/item', () => {
 		return headers['x-auth-token'];
 	}
 	beforeEach(async () => {
-		server = require('../../index');
 		itemName = 'item';
 		description = 'description';
 		title = 'category';
@@ -50,7 +48,7 @@ describe('/item', () => {
 		phoneNumber = '01234567890';
 	});
 	afterEach(async () => {
-		await server.close();
+		// await server.close();
 		await Item.deleteMany({});
 		await User.deleteMany({});
 		await Category.deleteMany({});
@@ -294,7 +292,7 @@ describe('/item', () => {
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*categoryId.*/i));
 		});
 		it(`should return 404 error if categoryId doesn't belong to an existing category`, async () => {
-			updates.categoryId = new mongoose.Types.ObjectId().toString();;
+			updates.categoryId = new mongoose.Types.ObjectId().toString();
 			const res = await exec();
 			expect(res.status).toBe(404);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*not.*found.*/i));

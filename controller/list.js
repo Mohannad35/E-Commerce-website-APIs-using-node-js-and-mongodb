@@ -1,10 +1,8 @@
-const List = require('../model/list');
-const listDebugger = require('debug')('app:list');
 const _ = require('lodash');
+const List = require('../model/list');
 
 class ListController {
 	static async lists(req, res) {
-		listDebugger(req.headers['user-agent']);
 		const { _id } = req.user;
 		const { pageNumber, pageSize, sortBy } = req.query;
 		const lists = await List.getLists(_id, pageNumber, pageSize, sortBy);
@@ -13,7 +11,6 @@ class ListController {
 	}
 
 	static async list(req, res) {
-		listDebugger(req.headers['user-agent']);
 		const { id } = req.params;
 		const list = await List.getList(id);
 		if (!list) return res.status(404).send({ message: 'List not found' });
@@ -21,7 +18,6 @@ class ListController {
 	}
 
 	static async addList(req, res) {
-		listDebugger(req.headers['user-agent']);
 		const { _id } = req.user;
 		const { name } = req.body;
 		const list = await List.createList(name, _id);
@@ -36,7 +32,6 @@ class ListController {
 	}
 
 	static async updateList(req, res) {
-		listDebugger(req.headers['user-agent']);
 		const { id } = req.params;
 		const { _id } = req.user;
 		const { name } = req.body;
@@ -53,7 +48,6 @@ class ListController {
 	}
 
 	static async addItemToList(req, res) {
-		listDebugger(req.headers['user-agent']);
 		const { _id: userId } = req.user;
 		const { id: listId } = req.params;
 		const { id: itemId } = req.body;
@@ -64,7 +58,6 @@ class ListController {
 	}
 
 	static async removeFromList(req, res) {
-		listDebugger(req.headers['user-agent']);
 		const { _id: userId } = req.user;
 		const { id: listId } = req.params;
 		const { id: itemId } = req.body;
@@ -75,7 +68,6 @@ class ListController {
 	}
 
 	static async deleteList(req, res) {
-		listDebugger(req.headers['user-agent']);
 		const { _id } = req.user;
 		const { id } = req.params;
 		const { err, status, message, list } = await List.deleteList(id, _id);

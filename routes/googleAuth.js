@@ -1,10 +1,11 @@
+const { Router } = require('express');
 const config = require('config');
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
-const router = require('express').Router();
-const User = require('../model/user');
+const { OAuth2Strategy: GoogleStrategy } = require('passport-google-oauth');
+const User = require('../model/user.js');
+const router = Router();
 
 passport.use(
 	new GoogleStrategy(

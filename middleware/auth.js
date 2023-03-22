@@ -1,10 +1,6 @@
+const config = require('config');
 const jwt = require('jsonwebtoken');
 const logger = require('./logger');
-const User = require('../model/user');
-const bcrypt = require('bcryptjs');
-const config = require('config');
-const _ = require('lodash');
-var { sha224, sha256 } = require('js-sha256');
 
 module.exports = async (req, res, next) => {
 	try {

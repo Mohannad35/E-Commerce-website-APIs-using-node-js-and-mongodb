@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const Item = require('./item');
-const Cart = require('./cart');
+const Item = require('./item.js');
+const Cart = require('./cart.js');
 
 const orderSchema = new mongoose.Schema(
 	{
@@ -92,7 +92,7 @@ orderSchema.statics.getOrders = async function (_id, pageNumber = 1, pageSize = 
 			limit: pageSize,
 			sort
 		}
-	);
+	).collation({ locale: 'en' });
 };
 
 orderSchema.statics.remainingOrders = async function (

@@ -1,19 +1,20 @@
-const morgan = require('morgan');
-const devDebugger = require('debug')('app:dev');
-const path = require('path');
 const fs = require('fs');
-const logger = require('../middleware/logger');
+const debug = require('debug');
+const morgan = require('morgan');
+const { join } = require('path');
+const logger = require('../middleware/logger.js');
+const devDebugger = debug('app:dev');
 
 module.exports = function (app) {
 	if (app.get('env') === 'development') {
 		const customFormat =
 			'[:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] [:response-time ms : :total-time ms] ":user-agent"';
-		// log only 4xx and 5xx responses to console
-		app.use(morgan(customFormat, { skip: (req, res) => res.statusCode < 400 }));
+		// log all responses to console
+		app.use(morgan(customFormat));
 		// log all requests to access.log
 		app.use(
 			morgan(customFormat, {
-				stream: fs.createWriteStream(path.join(__dirname, '../logs/access.log'), { flags: 'a' })
+				stream: fs.createWriteStream(join(__dirname, '../logs/access.log'), { flags: 'a' })
 			})
 		);
 		app.use(
@@ -31,10 +32,7 @@ module.exports = function (app) {
 				{
 					stream: {
 						// Configure Morgan to use our custom logger with the http severity
-						write: message => {
-							const data = JSON.parse(message);
-							logger.http(`incoming-request`, data);
-						}
+						write: message => logger.http(`incoming-request`, JSON.parse(message))
 					}
 				}
 			)

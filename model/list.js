@@ -1,5 +1,5 @@
-var mongoose = require('mongoose');
-const Item = require('../model/item');
+const mongoose = require('mongoose');
+const Item = require('./item.js');
 
 const listSchema = new mongoose.Schema(
 	{
@@ -44,7 +44,7 @@ listSchema.statics.getLists = async function (uid, pageNumber = 1, pageSize = 20
 		skip: (pageNumber - 1) * pageSize,
 		limit: pageSize,
 		sort
-	});
+	}).collation({ locale: 'en' });
 	return lists;
 };
 

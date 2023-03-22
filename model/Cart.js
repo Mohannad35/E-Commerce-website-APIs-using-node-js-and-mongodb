@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Item = require('./item');
+const Item = require('./item.js');
 
 const cartSchema = new mongoose.Schema(
 	{

@@ -1,10 +1,12 @@
-const router = require('express').Router();
-const auth = require('../middleware/auth');
-const isAdmin = require('../middleware/admin');
-const UserController = require('../controller/user');
-const validateObjectId = require('../middleware/validateObjectId');
-const validate = require('../middleware/validateReq');
-const Validator = require('../middleware/Validator');
+const { Router } = require('express');
+const _ = require('lodash');
+const auth = require('../middleware/auth.js');
+const isAdmin = require('../middleware/admin.js');
+const validate = require('../middleware/validateReq.js');
+const Validator = require('../middleware/validator.js');
+const UserController = require('../controller/user.js');
+const validateObjectId = require('../middleware/validateObjectId.js');
+const router = Router();
 
 // refresh auth token
 router.get('/refresh-jwt', [auth], UserController.refreshToken);

@@ -1,9 +1,10 @@
-const auth = require('../middleware/auth');
-const CartController = require('../controller/cart');
-const router = require('express').Router();
-const validateObjectId = require('../middleware/validateObjectId');
-const validate = require('../middleware/validateReq');
-const Validator = require('../middleware/Validator');
+const { Router } = require('express');
+const auth = require('../middleware/auth.js');
+const validate = require('../middleware/validateReq.js');
+const Validator = require('../middleware/validator.js');
+const CartController = require('../controller/cart.js');
+const validateObjectId = require('../middleware/validateObjectId.js');
+const router = Router();
 
 // get cart items
 router.get('/', [auth], CartController.getCartItems);
