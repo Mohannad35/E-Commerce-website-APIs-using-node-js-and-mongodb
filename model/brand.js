@@ -84,7 +84,7 @@ brandSchema.statics.editBrand = async function (id, name = null, img = null) {
 			`${__dirname.replace(/model/, '')}public/brands/${brand.img.replace(/.*brands\//, '')}`,
 			err => err && logger.error(err.message, err)
 		);
-		brand.img = `http://localhost:5000/categories/${img.filename}`;
+		brand.img = `http://localhost:5000/brands/${img.filename}`;
 	}
 	return { brand };
 };
