@@ -1,26 +1,21 @@
+import { unlink } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import mongoose from 'mongoose';
+import logger from '../middleware/logger.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const categorySchema = new mongoose.Schema(
 	{
-		title: {
-			type: String,
-			required: true,
-			trim: true,
-			minLength: 3,
-			maxLength: 255
-		},
+		title: { type: String, required: true, trim: true, minLength: 3, maxLength: 255 },
+		img: { type: String, trim: true },
+		isParent: { type: Boolean, default: false },
 		parent: {
 			_id: false,
-			parentId: {
-				type: mongoose.Schema.Types.ObjectId,
-				ref: 'Category'
-			},
-			parentTitle: {
-				type: String,
-				trim: true,
-				minLength: 3,
-				maxLength: 255
-			}
+			parentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
+			parentTitle: { type: String, trim: true, minLength: 3, maxLength: 255 }
 		},
 		slug: { type: String, slug: ['title', 'parent.parentTitle'] }
 	},
@@ -43,13 +38,22 @@ categorySchema.statics.getCategories = async function (query) {
 	let categories;
 	if (title) {
 		title = new RegExp(title.replace('-', ' '), 'i');
-		categories = await Category.find({ title }, {}, { skip, limit, sort });
+		categories = await Category.find({ title }, {}, { skip, limit, sort }).collation({
+			locale: 'en'
+		});
 	} else if (parentId)
-		categories = await Category.find({ 'parent.parentId': parentId }, {}, { skip, limit, sort });
+		categories = await Category.find(
+			{ 'parent.parentId': parentId },
+			{},
+			{ skip, limit, sort }
+		).collation({ locale: 'en' });
 	else if (slug) {
 		slug = new RegExp(slug, 'i');
-		categories = await Category.find({ slug }, {}, { skip, limit, sort });
-	} else categories = await Category.find({}, {}, { skip, limit, sort });
+		categories = await Category.find({ slug }, {}, { skip, limit, sort }).collation({
+			locale: 'en'
+		});
+	} else
+		categories = await Category.find({}, {}, { skip, limit, sort }).collation({ locale: 'en' });
 	const total = await Category.countDocuments();
 	return { pageNumber, pageSize, total, categories };
 };
@@ -65,8 +69,10 @@ categorySchema.statics.getMainCategories = async function (query) {
 	skip = (pageNumber - 1) * pageSize || skip || 0;
 	limit = pageSize || limit || 1000;
 	sort = sort || 'title';
-	let categories = await Category.find({ parent: null }, {}, { skip, limit, sort });
-	const total = await Category.countDocuments({ parent: null });
+	let categories = await Category.find({ isParent: true }, {}, { skip, limit, sort }).collation({
+		locale: 'en'
+	});
+	const total = await Category.countDocuments({ isParent: true });
 	return { pageNumber, pageSize, total, categories };
 };
 
@@ -83,26 +89,36 @@ categorySchema.statics.getCategoryById = async function (id) {
 	return await Category.findById(id);
 };
 
-categorySchema.statics.createCategory = async function (title, parentId = null) {
+categorySchema.statics.createCategory = async function (title, img, parentId = null) {
 	if (parentId) {
 		var parent = await Category.findById(parentId, 'title');
 		if (!parent) return { err: true, status: 404, message: 'Parent Category not found' };
+		if (!parent.isParent) {
+			parent.isParent = true;
+			await parent.save();
+		}
 	}
 	const category = new Category({
 		title,
+		img: `http://localhost:5000/categories/${img.filename}`,
 		parent: parentId ? { parentId: parent._id, parentTitle: parent.title } : null
 	});
 	return { category };
 };
 
-categorySchema.statics.editCategory = async function (id, title = null, parentId = null) {
+categorySchema.statics.editCategory = async function (id, title = null, img = null) {
 	let category = await Category.findById(id);
 	if (!category) return { err: true, status: 404, message: 'Category not found' };
 	if (title) category.title = title;
-	if (parentId) {
-		var parent = await Category.findById(parentId, 'title');
-		if (!parent) return { err: true, status: 404, message: 'Parent Category not found' };
-		category.parent = { parentId: parent._id, parentTitle: parent.title };
+	if (img) {
+		await unlink(
+			`${__dirname.replace(/model/, '')}public/categories/${category.img.replace(
+				/.*categories\//,
+				''
+			)}`,
+			err => err && logger.error(err.message, err)
+		);
+		category.img = `http://localhost:5000/categories/${img.filename}`;
 	}
 	return { category };
 };
@@ -110,6 +126,13 @@ categorySchema.statics.editCategory = async function (id, title = null, parentId
 categorySchema.statics.deleteCategory = async function (id) {
 	const category = await Category.findById(id);
 	if (!category) return { err: true, status: 404, message: 'Category not found' };
+	await unlink(
+		`${__dirname.replace(/model/, '')}public/categories/${category.img.replace(
+			/.*categories\//,
+			''
+		)}`,
+		err => err && logger.error(err.message, err)
+	);
 	await Category.deleteOne({ _id: category._id });
 	return { category };
 };

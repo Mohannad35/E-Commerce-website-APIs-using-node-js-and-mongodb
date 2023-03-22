@@ -5,15 +5,6 @@ export default class CategoryController {
 	// get all items from database and return them as JSON objects
 	static async categories(req, res) {
 		const { main, ...query } = req.query;
-		// let categories, pageNumber, pageSize, total, result;
-		// if (main) categories = await Category.getMainCategories(query);
-		// else {
-		// 	result = await Category.getCategories(query);
-		// 	categories = result.categories;
-		// 	pageNumber = result.pageNumber;
-		// 	pageSize = result.pageSize;
-		// 	total = result.total;
-		// }
 		const { pageNumber, pageSize, total, categories } =
 			main === 'true'
 				? await Category.getMainCategories(query)
@@ -37,11 +28,12 @@ export default class CategoryController {
 	// add new item to Database
 	static async addCategory(req, res) {
 		const { title, parentId } = req.body;
-		const { err, status, message, category } = await Category.createCategory(title, parentId);
+		const { file } = req;
+		const { err, status, message, category } = await Category.createCategory(title, file, parentId);
 		if (err) return res.status(status).send({ error: true, message });
 		await category
 			.save()
-			.then(() => res.status(201).send({ categoryid: category._id, create: true, category }))
+			.then(() => res.status(201).send({ create: true, category }))
 			.catch(err => {
 				if (err.code === 11000)
 					res.status(400).send({ error: true, message: 'This category already exists.' });
@@ -51,13 +43,12 @@ export default class CategoryController {
 
 	static async updateCategory(req, res) {
 		const { id } = req.params;
-		const { title, parentId } = req.body;
-		if (id === parentId)
-			return res.status(400).send({ error: true, message: `id and parentId can't be the same` });
-		const { err, status, message, category } = await Category.editCategory(id, title, parentId);
+		const { title } = req.body;
+		const { file } = req;
+		const { err, status, message, category } = await Category.editCategory(id, title, file);
 		if (err) return res.status(status).send({ error: true, message });
 		await category.save();
-		res.status(200).send({ categoryid: category._id, update: true });
+		res.status(200).send({ update: true, category });
 	}
 
 	static async deleteCategory(req, res) {

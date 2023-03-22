@@ -92,7 +92,7 @@ orderSchema.statics.getOrders = async function (_id, pageNumber = 1, pageSize = 
 			limit: pageSize,
 			sort
 		}
-	);
+	).collation({ locale: 'en' });
 };
 
 orderSchema.statics.remainingOrders = async function (

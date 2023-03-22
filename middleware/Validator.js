@@ -14,12 +14,12 @@ const complexityOptions = {
 	requirementCount: 3
 };
 const joiName = Joi.string()
-	.min(3)
+	.min(2)
 	.max(255)
 	.pattern(/^[\p{L}].*$/u)
 	.message('name should start with a letter');
 const joiTitle = Joi.string()
-	.min(3)
+	.min(2)
 	.max(255)
 	.pattern(/^\p{L}.*$/u)
 	.message('title should start with a letter');
@@ -41,10 +41,10 @@ const joiAccountType = Joi.string().valid('client', 'admin', 'vendor');
 const joiDescription = Joi.string().min(3).max(1024);
 const joiPrice = Joi.string()
 	.pattern(/^[0-9.]+$/)
-	.message('pageNumber should be a positive number');
+	.message('Price should be a positive number');
 const joiQuantity = Joi.string()
 	.pattern(/^[0-9]+$/)
-	.message('pageNumber should be a positive integer');
+	.message('Quantity should be a positive integer');
 const joiImage = Joi.string().uri({ allowQuerySquareBrackets: true });
 
 export default class Validator {
@@ -229,20 +229,9 @@ export default class Validator {
 			category: joiId.required(),
 			price: joiPrice.required(),
 			quantity: joiQuantity.required(),
-			brand: joiId,
-			images: Joi.any()
+			brand: joiId
 		});
 		return Schema.validate(item, { convert: false, abortEarly: false });
-	}
-
-	static addImg(img) {
-		const Schema = Joi.object({ img: joiImage.required() });
-		return Schema.validate(img, { convert: false, abortEarly: false });
-	}
-
-	static delImg(img) {
-		const Schema = Joi.object({ img: joiImage.required() });
-		return Schema.validate(img, { convert: false, abortEarly: false });
 	}
 
 	static updateItem(item) {
@@ -336,26 +325,23 @@ export default class Validator {
 
 	static updateCategory(category) {
 		const Schema = Joi.object({
-			title: joiTitle,
-			parentId: joiId
-		}).or('title', 'parentId');
+			title: joiTitle
+		});
 		return Schema.validate(category, { convert: false, abortEarly: false });
 	}
 
 	// brand validations
 	static addBrand(brand) {
 		const Schema = Joi.object({
-			name: joiName.required(),
-			img: joiImage.required()
+			name: joiName.required()
 		});
 		return Schema.validate(brand, { convert: false, abortEarly: false });
 	}
 
 	static updateBrand(brand) {
 		const Schema = Joi.object({
-			name: joiName,
-			img: joiImage
-		}).or('name', 'img');
+			name: joiName
+		});
 		return Schema.validate(brand, { convert: false, abortEarly: false });
 	}
 

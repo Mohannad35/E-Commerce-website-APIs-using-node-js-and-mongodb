@@ -36,9 +36,9 @@ const rateSchema = new mongoose.Schema(
 rateSchema.statics.getRates = async function (query) {
 	const { userId, itemId, vendorId } = query;
 	let rates;
-	if (userId) rates = await Rate.find({ userId });
-	if (itemId) rates = await Rate.find({ itemId });
-	if (vendorId) rates = await Rate.find({ vendorId });
+	if (userId) rates = await Rate.find({ userId }).collation({ locale: 'en' });
+	if (itemId) rates = await Rate.find({ itemId }).collation({ locale: 'en' });
+	if (vendorId) rates = await Rate.find({ vendorId }).collation({ locale: 'en' });
 	return rates;
 };
 

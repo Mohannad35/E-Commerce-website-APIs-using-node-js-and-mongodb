@@ -44,7 +44,7 @@ listSchema.statics.getLists = async function (uid, pageNumber = 1, pageSize = 20
 		skip: (pageNumber - 1) * pageSize,
 		limit: pageSize,
 		sort
-	});
+	}).collation({ locale: 'en' });
 	return lists;
 };
 

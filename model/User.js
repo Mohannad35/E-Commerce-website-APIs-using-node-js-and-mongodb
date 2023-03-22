@@ -183,26 +183,35 @@ userSchema.statics.getUsers = async function (query) {
 	let users;
 	if (name) {
 		name = new RegExp(name.replace('-', ' '), 'i');
-		users = await User.find({ name }, '-password', { skip, limit, sort });
+		users = await User.find({ name }, '-password', { skip, limit, sort }).collation({
+			locale: 'en'
+		});
 	} else if (email) {
 		email = new RegExp(email, 'i');
-		users = await User.find({ email }, '-password', { skip, limit, sort });
+		users = await User.find({ email }, '-password', { skip, limit, sort }).collation({
+			locale: 'en'
+		});
 	} else if (accountType)
-		users = await User.find({ accountType }, '-password', { skip, limit, sort });
-	else if (gender) users = await User.find({ gender }, '-password', { skip, limit, sort });
+		users = await User.find({ accountType }, '-password', { skip, limit, sort }).collation({
+			locale: 'en'
+		});
+	else if (gender)
+		users = await User.find({ gender }, '-password', { skip, limit, sort }).collation({
+			locale: 'en'
+		});
 	else if (age)
 		users = await User.find(
 			{ birthday: { $lte: moment().subtract(age, 'years').format('YYYY-MM-DD') } },
 			'-password',
 			{ skip, limit, sort }
-		);
+		).collation({ locale: 'en' });
 	else if (maxAge)
 		users = await User.find(
 			{ birthday: { $gte: moment().subtract(maxAge, 'years').format('YYYY-MM-DD') } },
 			'-password',
 			{ skip, limit, sort }
-		);
-	else users = await User.find({}, '-password', { skip, limit, sort });
+		).collation({ locale: 'en' });
+	else users = await User.find({}, '-password', { skip, limit, sort }).collation({ locale: 'en' });
 	return { pageNumber, pageSize, users };
 };
 
@@ -245,7 +254,7 @@ userSchema.statics.vendorReq = async function (id, details) {
 };
 
 userSchema.statics.getVendorReq = async function () {
-	return await Request.find({});
+	return await Request.find({}).collation({ locale: 'en' });
 };
 
 userSchema.statics.changeAccountType = async function (userId, type) {

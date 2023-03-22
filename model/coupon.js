@@ -44,20 +44,20 @@ couponSchema.statics.getCoupons = async function (query) {
 	let coupons;
 	if (code) {
 		code = new RegExp(code, 'i');
-		coupons = await Coupon.find({ code }, {}, { skip, limit, sort });
+		coupons = await Coupon.find({ code }, {}, { skip, limit, sort }).collation({ locale: 'en' });
 	} else if (expireAt)
 		coupons = await Coupon.find(
 			{ expireAt: { $gte: new Date(expireAt) } },
 			{},
 			{ skip, limit, sort }
-		);
+		).collation({ locale: 'en' });
 	else if (validFrom)
 		coupons = await Coupon.find(
 			{ validFrom: { $lte: new Date(validFrom) } },
 			{},
 			{ skip, limit, sort }
-		);
-	else coupons = await Coupon.find({}, {}, { skip, limit, sort });
+		).collation({ locale: 'en' });
+	else coupons = await Coupon.find({}, {}, { skip, limit, sort }).collation({ locale: 'en' });
 	const totalCoupons = await Coupon.countDocuments();
 	return { pageNumber, pageSize, totalCoupons, coupons };
 };
@@ -78,7 +78,7 @@ couponSchema.statics.getWorkingCoupons = async function (query) {
 		{ expireAt: { $gte: new Date() }, validFrom: { $lte: new Date() } },
 		{},
 		{ skip, limit, sort }
-	);
+	).collation({ locale: 'en' });
 	const totalCoupons = await Coupon.countDocuments();
 	return { pageNumber, pageSize, totalCoupons, coupons };
 };

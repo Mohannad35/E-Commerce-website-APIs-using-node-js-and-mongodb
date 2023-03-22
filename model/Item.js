@@ -24,20 +24,9 @@ const itemSchema = new mongoose.Schema(
 		sold: { type: Number, default: 0, min: [0, 'Invalid sold count'] },
 		rating: { type: Number, default: 0, min: [0, 'Invalid rating'], max: [5, 'Invalid rating'] },
 		ratingCount: { type: Number, default: 0, min: [0, 'Invalid rating count'] },
-		category: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Category',
-			required: true
-		},
-		owner: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'User',
-			required: true
-		},
-		brand: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Brand'
-		}
+		category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
+		owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+		brand: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand' }
 	},
 	{
 		timestamps: true
@@ -60,27 +49,31 @@ itemSchema.statics.getItems = async function (query) {
 	let items, total;
 	if (sold) {
 		sort = '-sold';
-		items = await Item.find({}, {}, { skip, limit, sort });
+		items = await Item.find({}, {}, { skip, limit, sort }).collation({ locale: 'en' });
 		total = await Item.countDocuments({});
 	} else if (name) {
 		name = new RegExp(name.replace('-', ' '), 'i');
-		items = await Item.find({ name }, {}, { skip, limit, sort });
+		items = await Item.find({ name }, {}, { skip, limit, sort }).collation({ locale: 'en' });
 		total = await Item.countDocuments({ name });
 	} else if (price) {
 		const [min, max] = price.split('-'); // 300-1000
-		items = await Item.find({ price: { $gte: min, $lte: max } }, {}, { skip, limit, sort });
+		items = await Item.find(
+			{ price: { $gte: min, $lte: max } },
+			{},
+			{ skip, limit, sort }
+		).collation({ locale: 'en' });
 		total = await Item.countDocuments({ price: { $gte: min, $lte: max } });
 	} else if (brand) {
-		items = await Item.find({ brand }, {}, { skip, limit, sort });
+		items = await Item.find({ brand }, {}, { skip, limit, sort }).collation({ locale: 'en' });
 		total = await Item.countDocuments({ brand });
 	} else if (category) {
-		items = await Item.find({ category }, {}, { skip, limit, sort });
+		items = await Item.find({ category }, {}, { skip, limit, sort }).collation({ locale: 'en' });
 		total = await Item.countDocuments({ category });
 	} else if (owner) {
-		items = await Item.find({ owner }, {}, { skip, limit, sort });
+		items = await Item.find({ owner }, {}, { skip, limit, sort }).collation({ locale: 'en' });
 		total = await Item.countDocuments({ owner });
 	} else {
-		items = await Item.find({}, {}, { skip, limit, sort });
+		items = await Item.find({}, {}, { skip, limit, sort }).collation({ locale: 'en' });
 		total = await Item.countDocuments({});
 	}
 	const numberOfPages = Math.ceil(total / pageSize);
