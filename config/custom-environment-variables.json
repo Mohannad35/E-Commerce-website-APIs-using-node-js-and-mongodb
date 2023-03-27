@@ -1,4 +1,5 @@
 {
+	"client_url": "CLIENT_URL",
 	"project_issuer": "PROJECT_ISSUER",
 	"env": "NODE_ENV",
 	"port": "PORT",

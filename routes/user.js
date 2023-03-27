@@ -8,8 +8,11 @@ import UserController from '../controller/user.js';
 import validateObjectId from '../middleware/validateObjectId.js';
 const router = Router();
 
+// get user
+router.get('/me', [auth], UserController.user);
+
 // refresh auth token
-router.get('/refresh-jwt', [auth], UserController.refreshToken);
+router.get('/refresh-token', [auth], UserController.refreshToken);
 
 // show all users (will check later that the user has admin permissions)
 router.get('/', [auth, isAdmin, validate('query', Validator.getUsers)], UserController.users);
@@ -32,18 +35,23 @@ router.get('/resend-verify', [auth], UserController.resend);
 // resend verification email
 router.post('/forget-password', [validate('body', Validator.email)], UserController.forgetPassword);
 
-// resend verification email
 router.get(
 	'/forget-password',
 	[validate('query', Validator.token)],
 	UserController.redirectForgetPassword
 );
 
+router.post(
+	'/reset-password',
+	[validate('body', Validator.resetPassword)],
+	UserController.changeForgetPassword
+);
+
 // login
 router.post('/login', [validate('body', Validator.login)], UserController.login);
 
 // edit user information
-router.post('/me', [auth, validate('body', Validator.userInfo)], UserController.editInfo);
+router.patch('/me', [auth, validate('body', Validator.userInfo)], UserController.editInfo);
 
 // vendor request
 router.post(

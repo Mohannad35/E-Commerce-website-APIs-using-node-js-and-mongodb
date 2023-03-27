@@ -14,6 +14,7 @@ import orderRouter from '../routes/order.js';
 import googleRouter from '../routes/googleAuth.js';
 import categoryRouter from '../routes/category.js';
 import facebookRouter from '../routes/facebookAuth.js';
+import allowedHeaders from '../middleware/allowedHeaders.js';
 mongoose.plugin(slug);
 
 export default function (app) {
@@ -23,6 +24,7 @@ export default function (app) {
 	app.use(cookieParser());
 	app.use(helmet());
 	app.use(cors());
+	app.use(allowedHeaders);
 	app.use('/api/user', userRouter);
 	app.use('/api/item', itemRouter);
 	app.use('/api/cart', cartRouter);

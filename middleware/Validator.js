@@ -119,9 +119,9 @@ export default class Validator {
 			email: joiEmail.required(),
 			phoneNumber: joiPhoneNumber.required(),
 			password: passwordComplexity(complexityOptions, 'Password').required(),
-			confirmPassword: JoiConfirmPassword.required(),
-			birthday: JoiDate.required(),
-			gender: Joi.string().allow('male', 'female').required(),
+			confirmPassword: JoiConfirmPassword,
+			birthday: JoiDate,
+			gender: Joi.string().allow('male', 'female'),
 			city: Joi.string().min(3).max(1024),
 			address: Joi.string().min(3).max(1024),
 			companyName: Joi.string().min(3).max(1024),
@@ -171,17 +171,31 @@ export default class Validator {
 	static userInfo(account) {
 		const Schema = Joi.object({
 			name: joiName,
-			email: joiEmail
-		})
-			.or('name', 'email')
-			.label('Body');
-		return Schema.validate(account, { convert: false, abortEarly: false });
+			email: joiEmail,
+			phoneNumber: joiPhoneNumber,
+			birthday: JoiDate,
+			gender: Joi.string().allow('male', 'female'),
+			city: Joi.string().min(3).max(1024),
+			address: Joi.string().min(3).max(1024),
+			companyName: Joi.string().min(3).max(1024),
+			businessAddress: Joi.string().min(3).max(1024),
+			websiteAddress: Joi.string().domain().min(3).max(1024)
+		});
+		return Schema.validate(account, { abortEarly: false });
 	}
 
 	static password(account) {
 		const Schema = Joi.object({
 			oldPassword: Joi.string().required(),
 			newPassword: passwordComplexity(complexityOptions, 'Password').required()
+		});
+		return Schema.validate(account, { convert: false, abortEarly: false });
+	}
+
+	static resetPassword(account) {
+		const Schema = Joi.object({
+			password: passwordComplexity(complexityOptions, 'Password').required(),
+			code: Joi.string().required()
 		});
 		return Schema.validate(account, { convert: false, abortEarly: false });
 	}
