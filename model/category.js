@@ -25,7 +25,7 @@ const categorySchema = new mongoose.Schema(
 );
 
 categorySchema.statics.getCategories = async function (query) {
-	let { title, parentId, isParent, slug, skip, limit, pageNumber, pageSize, sort } = query;
+	let { title, parentId, isParent, main, slug, skip, limit, pageNumber, pageSize, sort } = query;
 	if (pageNumber || pageSize) {
 		skip = undefined;
 		limit = undefined;
@@ -35,53 +35,57 @@ categorySchema.statics.getCategories = async function (query) {
 	skip = (pageNumber - 1) * pageSize || skip || 0;
 	limit = pageSize || limit || 1000;
 	sort = sort || 'title';
-	let categories;
-	if (title) {
+	let categories, total;
+	if (main) {
+		categories = await Category.find({ parent: null }, {}, { skip, limit, sort }).collation({
+			locale: 'en'
+		});
+		total = await Category.countDocuments({ parent: null });
+	} else if (title) {
 		title = new RegExp(title.replace('-', ' '), 'i');
 		categories = await Category.find({ title }, {}, { skip, limit, sort }).collation({
 			locale: 'en'
 		});
-	} else if (parentId)
+		total = await Category.countDocuments({ title });
+	} else if (parentId) {
 		categories = await Category.find(
 			{ 'parent.parentId': parentId },
 			{},
 			{ skip, limit, sort }
 		).collation({ locale: 'en' });
-	else if (isParent === 'true')
+		total = await Category.countDocuments({ 'parent.parentId': parentId });
+	} else if (isParent === 'true') {
 		categories = await Category.find({ isParent: true }, {}, { skip, limit, sort }).collation({
 			locale: 'en'
 		});
-	else if (isParent === 'false')
+		total = await Category.countDocuments({ isParent: true });
+	} else if (isParent === 'false') {
 		categories = await Category.find({ isParent: false }, {}, { skip, limit, sort }).collation({
 			locale: 'en'
 		});
-	else if (slug) {
+		total = await Category.countDocuments({ isParent: false });
+	} else if (slug) {
 		slug = new RegExp(slug, 'i');
 		categories = await Category.find({ slug }, {}, { skip, limit, sort }).collation({
 			locale: 'en'
 		});
-	} else
+		total = await Category.countDocuments({ slug });
+	} else {
 		categories = await Category.find({}, {}, { skip, limit, sort }).collation({ locale: 'en' });
-	const total = await Category.countDocuments();
-	return { pageNumber, pageSize, total, categories };
-};
-
-categorySchema.statics.getMainCategories = async function (query) {
-	let { skip, limit, pageNumber, pageSize, sort } = query;
-	if (pageNumber || pageSize) {
-		skip = undefined;
-		limit = undefined;
+		total = await Category.countDocuments();
 	}
-	if (pageNumber && !pageSize) pageSize = 20;
-	if (!pageNumber && pageSize) pageNumber = 1;
-	skip = (pageNumber - 1) * pageSize || skip || 0;
-	limit = pageSize || limit || 1000;
-	sort = sort || 'title';
-	let categories = await Category.find({ isParent: true }, {}, { skip, limit, sort }).collation({
-		locale: 'en'
-	});
-	const total = await Category.countDocuments({ isParent: true });
-	return { pageNumber, pageSize, total, categories };
+	const numberOfPages = Math.ceil(total / pageSize);
+	const remaining = total - skip - limit > 0 ? total - skip - limit : 0;
+	return {
+		total,
+		remaining,
+		paginationResult: {
+			currentPage: parseInt(pageNumber),
+			numberOfPages,
+			limit: parseInt(pageSize)
+		},
+		categories
+	};
 };
 
 categorySchema.statics.remainingCategories = async function (

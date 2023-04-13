@@ -4,12 +4,9 @@ import Category from '../model/category.js';
 export default class CategoryController {
 	// get all items from database and return them as JSON objects
 	static async categories(req, res) {
-		const { main, ...query } = req.query;
-		const { pageNumber, pageSize, total, categories } =
-			main === 'true'
-				? await Category.getMainCategories(query)
-				: await Category.getCategories(query);
-		res.send({ length: categories.length, pageNumber, pageSize, total, categories });
+		const { query } = req;
+		const { total, remaining, paginationResult, categories } = await Category.getCategories(query);
+		res.send({ length: categories.length, total, remaining, paginationResult, categories });
 	}
 
 	static async subCategories(req, res) {
