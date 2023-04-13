@@ -324,6 +324,7 @@ export default class Validator {
 				.message('sort should only contain letters and _-,.'),
 			title: joiTitle,
 			parentId: joiId,
+			isParent: Joi.string().allow('true', 'false'),
 			slug: Joi.string()
 		});
 		return Schema.validate(categories, { convert: false, abortEarly: false });

@@ -25,7 +25,7 @@ const categorySchema = new mongoose.Schema(
 );
 
 categorySchema.statics.getCategories = async function (query) {
-	let { title, parentId, slug, skip, limit, pageNumber, pageSize, sort } = query;
+	let { title, parentId, isParent, slug, skip, limit, pageNumber, pageSize, sort } = query;
 	if (pageNumber || pageSize) {
 		skip = undefined;
 		limit = undefined;
@@ -47,6 +47,14 @@ categorySchema.statics.getCategories = async function (query) {
 			{},
 			{ skip, limit, sort }
 		).collation({ locale: 'en' });
+	else if (isParent === 'true')
+		categories = await Category.find({ isParent: true }, {}, { skip, limit, sort }).collation({
+			locale: 'en'
+		});
+	else if (isParent === 'false')
+		categories = await Category.find({ isParent: false }, {}, { skip, limit, sort }).collation({
+			locale: 'en'
+		});
 	else if (slug) {
 		slug = new RegExp(slug, 'i');
 		categories = await Category.find({ slug }, {}, { skip, limit, sort }).collation({
