@@ -325,7 +325,8 @@ export default class Validator {
 			title: joiTitle,
 			parentId: joiId,
 			isParent: Joi.string().allow('true', 'false'),
-			slug: Joi.string()
+			slug: Joi.string(),
+			catArr: Joi.string()
 		});
 		return Schema.validate(categories, { convert: false, abortEarly: false });
 	}
