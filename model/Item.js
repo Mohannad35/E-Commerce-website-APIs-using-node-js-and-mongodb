@@ -46,7 +46,8 @@ itemSchema.statics.getItems = async function (query) {
 	limit = pageSize || limit || 1000;
 	sort = sort || 'name';
 	sort = sort.split(',').join(' ');
-	let items, total;
+	let items = [],
+		total = 0;
 	if (sold) {
 		sort = '-sold';
 		items = await Item.find({}, {}, { skip, limit, sort }).collation({ locale: 'en' });
@@ -64,8 +65,19 @@ itemSchema.statics.getItems = async function (query) {
 		).collation({ locale: 'en' });
 		total = await Item.countDocuments({ price: { $gte: min, $lte: max } });
 	} else if (brand) {
-		items = await Item.find({ brand }, {}, { skip, limit, sort }).collation({ locale: 'en' });
-		total = await Item.countDocuments({ brand });
+		brand = brand.split(',');
+		if (brand.length > 1) {
+			for (let b of brand) {
+				const its = await Item.find({ brand: b }, {}, { skip, limit, sort }).collation({
+					locale: 'en'
+				});
+				items = [...items, ...its];
+				total += await Item.countDocuments({ brand: b });
+			}
+		} else {
+			items = await Item.find({ brand }, {}, { skip, limit, sort }).collation({ locale: 'en' });
+			total = await Item.countDocuments({ brand });
+		}
 	} else if (category) {
 		items = await Item.find({ category }, {}, { skip, limit, sort }).collation({ locale: 'en' });
 		total = await Item.countDocuments({ category });
