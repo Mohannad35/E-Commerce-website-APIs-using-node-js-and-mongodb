@@ -36,63 +36,44 @@ const itemSchema = new mongoose.Schema(
 itemSchema.statics.getItems = async function (query) {
 	let { skip, sort, limit, pageNumber, pageSize, name, from, to, sold, category, owner, brand } =
 		query;
-	if (pageNumber || pageSize) {
-		limit = undefined;
-		skip = undefined;
-	}
-	if (pageNumber && !pageSize) pageSize = 20;
-	if (!pageNumber && pageSize) pageNumber = 1;
+
+	limit = pageNumber || pageSize ? undefined : limit;
+	skip = pageNumber || pageSize ? undefined : skip;
+	pageSize = pageNumber && !pageSize ? 20 : pageSize;
+	pageNumber = !pageNumber && pageSize ? 1 : pageNumber;
 	skip = (pageNumber - 1) * pageSize || skip || 0;
 	limit = pageSize || limit || 1000;
-	sort = sort || 'name';
+	sort = sold ? '-sold' : sort || 'name';
 	sort = sort.split(',').join(' ');
 	let items = [],
 		total = 0;
+	name = name ? new RegExp(name.replace('-', ' '), 'i') : /.*/;
+	brand = brand ? brand.split(',') : undefined;
+	owner = owner ? owner.split(',') : undefined;
+	category = category ? category.split(',') : undefined;
 	if (sold) {
 		sort = '-sold';
 		items = await Item.find({}, {}, { skip, limit, sort }).collation({ locale: 'en' });
 		total = await Item.countDocuments({});
-	} else if (name) {
-		name = new RegExp(name.replace('-', ' '), 'i');
-		items = await Item.find({ name }, {}, { skip, limit, sort }).collation({ locale: 'en' });
-		total = await Item.countDocuments({ name });
-	} else if (from || to) {
-		if (to) {
-			items = await Item.find(
-				{ price: { $gte: from || 0, $lte: to } },
-				{},
-				{ skip, limit, sort }
-			).collation({ locale: 'en' });
-			total = await Item.countDocuments({ price: { $gte: from || 0, $lte: to } });
-		} else {
-			items = await Item.find({ price: { $gte: from || 0 } }, {}, { skip, limit, sort }).collation({
-				locale: 'en'
-			});
-			total = await Item.countDocuments({ price: { $gte: from || 0 } });
-		}
-	} else if (brand) {
-		brand = brand.split(',');
-		if (brand.length > 1) {
-			for (let b of brand) {
-				const its = await Item.find({ brand: b }, {}, { skip, limit, sort }).collation({
-					locale: 'en'
-				});
-				items = [...items, ...its];
-				total += await Item.countDocuments({ brand: b });
-			}
-		} else {
-			items = await Item.find({ brand }, {}, { skip, limit, sort }).collation({ locale: 'en' });
-			total = await Item.countDocuments({ brand });
-		}
-	} else if (category) {
-		items = await Item.find({ category }, {}, { skip, limit, sort }).collation({ locale: 'en' });
-		total = await Item.countDocuments({ category });
-	} else if (owner) {
-		items = await Item.find({ owner }, {}, { skip, limit, sort }).collation({ locale: 'en' });
-		total = await Item.countDocuments({ owner });
 	} else {
-		items = await Item.find({}, {}, { skip, limit, sort }).collation({ locale: 'en' });
-		total = await Item.countDocuments({});
+		items = await Item.find(
+			{
+				name,
+				price: { $gte: from || 0, $lte: to || 10000000 },
+				owner: owner ? { $in: owner } : { $exists: true },
+				brand: brand ? { $in: brand } : { $exists: true },
+				category: category ? { $in: category } : { $exists: true }
+			},
+			{},
+			{ skip, limit, sort }
+		).collation({ locale: 'en' });
+		total = await Item.countDocuments({
+			name,
+			price: { $gte: from || 0, $lte: to || 10000000 },
+			owner: owner ? { $in: owner } : { $exists: true },
+			brand: brand ? { $in: brand } : { $exists: true },
+			category: category ? { $in: category } : { $exists: true }
+		});
 	}
 	const numberOfPages = Math.ceil(total / pageSize);
 	const remaining = total - skip - limit > 0 ? total - skip - limit : 0;

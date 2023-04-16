@@ -211,30 +211,37 @@ export default class Validator {
 	static getItems(item) {
 		const Schema = Joi.object({
 			pageNumber: Joi.string()
+				.allow('')
 				.pattern(/^[0-9]+$/)
 				.message('pageNumber should be a positive integer'),
 			pageSize: Joi.string()
+				.allow('')
 				.pattern(/^[0-9]+$/)
 				.message('pageSize should be a positive integer'),
 			skip: Joi.string()
+				.allow('')
 				.pattern(/^[0-9]+$/)
 				.message('skip should be a positive integer'),
 			limit: Joi.string()
+				.allow('')
 				.pattern(/^[0-9]+$/)
 				.message('limit should be a positive integer'),
 			sort: Joi.string()
+				.allow('')
 				.pattern(/^[A-Za-z_\-,.]+$/)
 				.message('sort should only contain letters and _-,.'),
-			category: joiId,
-			owner: joiId,
-			brand: Joi.string(),
+			category: Joi.string().allow(''),
+			owner: Joi.string().allow(''),
+			brand: Joi.string().allow(''),
 			from: Joi.string()
+				.allow('')
 				.pattern(/^[0-9]+$/)
 				.message('from should be a positive integer'),
 			to: Joi.string()
+				.allow('')
 				.pattern(/^[0-9]+$/)
 				.message('to should be a positive integer'),
-			name: Joi.string()
+			name: Joi.string().allow('')
 		});
 		return Schema.validate(item, { convert: false, abortEarly: false });
 	}
