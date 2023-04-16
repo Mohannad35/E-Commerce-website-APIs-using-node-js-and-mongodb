@@ -225,12 +225,15 @@ export default class Validator {
 			sort: Joi.string()
 				.pattern(/^[A-Za-z_\-,.]+$/)
 				.message('sort should only contain letters and _-,.'),
-			category: Joi.objectId(),
-			owner: Joi.objectId(),
-			brand: Joi.objectId(),
-			price: Joi.string()
-				.pattern(/^[0-9]+-[0-9]+$/)
-				.message('price should be a positive integer'),
+			category: joiId,
+			owner: joiId,
+			brand: Joi.string(),
+			from: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('from should be a positive integer'),
+			to: Joi.string()
+				.pattern(/^[0-9]+$/)
+				.message('to should be a positive integer'),
 			name: Joi.string()
 		});
 		return Schema.validate(item, { convert: false, abortEarly: false });

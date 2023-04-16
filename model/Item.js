@@ -34,7 +34,7 @@ const itemSchema = new mongoose.Schema(
 );
 
 itemSchema.statics.getItems = async function (query) {
-	let { skip, sort, limit, pageNumber, pageSize, name, price, sold, category, owner, brand } =
+	let { skip, sort, limit, pageNumber, pageSize, name, from, to, sold, category, owner, brand } =
 		query;
 	if (pageNumber || pageSize) {
 		limit = undefined;
@@ -56,14 +56,20 @@ itemSchema.statics.getItems = async function (query) {
 		name = new RegExp(name.replace('-', ' '), 'i');
 		items = await Item.find({ name }, {}, { skip, limit, sort }).collation({ locale: 'en' });
 		total = await Item.countDocuments({ name });
-	} else if (price) {
-		const [min, max] = price.split('-'); // 300-1000
-		items = await Item.find(
-			{ price: { $gte: min, $lte: max } },
-			{},
-			{ skip, limit, sort }
-		).collation({ locale: 'en' });
-		total = await Item.countDocuments({ price: { $gte: min, $lte: max } });
+	} else if (from || to) {
+		if (to) {
+			items = await Item.find(
+				{ price: { $gte: from || 0, $lte: to } },
+				{},
+				{ skip, limit, sort }
+			).collation({ locale: 'en' });
+			total = await Item.countDocuments({ price: { $gte: from || 0, $lte: to } });
+		} else {
+			items = await Item.find({ price: { $gte: from || 0 } }, {}, { skip, limit, sort }).collation({
+				locale: 'en'
+			});
+			total = await Item.countDocuments({ price: { $gte: from || 0 } });
+		}
 	} else if (brand) {
 		brand = brand.split(',');
 		if (brand.length > 1) {
