@@ -1,12 +1,20 @@
 import _ from 'lodash';
-import Category from '../model/category.js';
-import Brand from '../model/brand.js';
+import { Types } from 'mongoose';
 import Item from './../model/item.js';
 
 export default class ItemController {
 	// get all items from database and return them as JSON objects
 	static async items(req, res) {
 		const { query } = req;
+		if (query.brand) {
+			const brand = query.brand.split(',');
+			if (brand.length > 1) {
+				for (let b of brand)
+					if (!Types.ObjectId.isValid(b))
+						return res.status(400).send({ error: true, message: 'Invalid brand object Ids.' });
+			} else if (!Types.ObjectId.isValid(brand[0]))
+				return res.status(400).send({ error: true, message: 'Invalid brand object Id.' });
+		}
 		const { total, remaining, paginationResult, items } = await Item.getItems(query);
 		res.send({ length: items.length, total, remaining, paginationResult, items });
 	}

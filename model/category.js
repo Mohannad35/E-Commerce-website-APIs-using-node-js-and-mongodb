@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import mongoose from 'mongoose';
 import logger from '../middleware/logger.js';
+import _ from 'lodash';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,7 +26,8 @@ const categorySchema = new mongoose.Schema(
 );
 
 categorySchema.statics.getCategories = async function (query) {
-	let { title, parentId, isParent, main, slug, skip, limit, pageNumber, pageSize, sort } = query;
+	let { title, parentId, isParent, main, slug, skip, limit, pageNumber, pageSize, sort, catArr } =
+		query;
 	if (pageNumber || pageSize) {
 		skip = undefined;
 		limit = undefined;
@@ -35,12 +37,27 @@ categorySchema.statics.getCategories = async function (query) {
 	skip = (pageNumber - 1) * pageSize || skip || 0;
 	limit = pageSize || limit || 1000;
 	sort = sort || 'title';
-	let categories, total;
+	let categories,
+		total,
+		cats = {};
 	if (main) {
 		categories = await Category.find({ parent: null }, {}, { skip, limit, sort }).collation({
 			locale: 'en'
 		});
 		total = await Category.countDocuments({ parent: null });
+	} else if (catArr) {
+		categories = await Category.find({ parent: null }, 'title isParent parent');
+		for (let i in categories) {
+			const children = await Category.find({ 'parent.parentId': categories[i]._id }).select(
+				'title isParent'
+			);
+			let arr = [];
+			children.forEach(child => arr.push({ _id: child._id, title: child.title }));
+			_.set(cats, categories[i].title, arr);
+			arr = [];
+		}
+		categories = cats;
+		total = await Category.countDocuments();
 	} else if (title) {
 		title = new RegExp(title.replace('-', ' '), 'i');
 		categories = await Category.find({ title }, {}, { skip, limit, sort }).collation({

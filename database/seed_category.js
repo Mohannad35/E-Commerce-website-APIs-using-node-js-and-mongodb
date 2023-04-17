@@ -66,7 +66,7 @@ const Categories = [
 					'Home Décor',
 					'Bedding & Linen',
 					'Bath Accessories',
-					'Storage & Organisation',
+					'Storage & Organization',
 					'Household Supplies',
 					'Garden & Outdoors'
 				]
@@ -106,7 +106,7 @@ const Categories = [
 					'Perfumes'
 				]
 			},
-			`Kids's Fashion`,
+			`Kids' Fashion`,
 			{
 				parent: `Bags, Shoes & More`,
 				children: ['Shoes', 'Bags & Wallets', 'Eyewear', 'Sports Shoes', 'Travel Bags & Backpacks']
