@@ -374,15 +374,72 @@ export default class Validator {
 	// list validations
 	static list(category) {
 		const Schema = Joi.object({
-			name: joiName.required()
+			name: joiName.required(),
+			listId: joiId,
+			populate: Joi.string().allow('true', 'false', ''),
+			page: Joi.string()
+				.allow('')
+				.pattern(/^[0-9]+$/)
+				.message('page should be a positive integer'),
+			pageSize: Joi.string()
+				.allow('')
+				.pattern(/^[0-9]+$/)
+				.message('pageSize should be a positive integer')
 		});
 		return Schema.validate(category, { convert: false, abortEarly: false });
 	}
 
 	static listItemId(category) {
 		const Schema = Joi.object({
+			listId: joiId,
 			id: joiId.required()
 		});
 		return Schema.validate(category, { convert: false, abortEarly: false });
+	}
+
+	// Rate validations
+	static addRate(rate) {
+		const Schema = Joi.object({
+			itemId: joiId.required(),
+			rateValue: Joi.number().min(0).max(5).required(),
+			review: Joi.string()
+		});
+		return Schema.validate(rate, { convert: false, abortEarly: false });
+	}
+
+	static editRate(rate) {
+		const Schema = Joi.object({
+			rateValue: Joi.number().min(0).max(5),
+			review: Joi.string()
+		}).or('rateValue', 'review');
+		return Schema.validate(rate, { convert: false, abortEarly: false });
+	}
+
+	static getRates(rate) {
+		const Schema = Joi.object({
+			pageNumber: Joi.string()
+				.allow('')
+				.pattern(/^[0-9]+$/)
+				.message('pageNumber should be a positive integer'),
+			pageSize: Joi.string()
+				.allow('')
+				.pattern(/^[0-9]+$/)
+				.message('pageSize should be a positive integer'),
+			skip: Joi.string()
+				.allow('')
+				.pattern(/^[0-9]+$/)
+				.message('skip should be a positive integer'),
+			limit: Joi.string()
+				.allow('')
+				.pattern(/^[0-9]+$/)
+				.message('limit should be a positive integer'),
+			sort: Joi.string()
+				.allow('')
+				.pattern(/^[A-Za-z_\-,.]+$/)
+				.message('sort should only contain letters and _-,.'),
+			itemId: joiId.allow(''),
+			userId: joiId.allow('')
+		});
+		return Schema.validate(rate, { convert: false, abortEarly: false });
 	}
 }

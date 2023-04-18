@@ -11,10 +11,18 @@ export default class ListController {
 	}
 
 	static async list(req, res) {
-		const { id } = req.params;
-		const list = await List.getList(id);
-		if (!list) return res.status(404).send({ message: 'List not found' });
-		res.status(200).send({ list });
+		const { _id } = req.user;
+		const { name, listId, populate, page, pageSize } = req.query;
+		const { total, remaining, paginationResult, items } = await List.getList(
+			listId,
+			_id,
+			name,
+			populate,
+			page,
+			pageSize
+		);
+		if (!items) return res.status(404).send({ message: 'List not found' });
+		res.status(200).send({ length: items.length, total, remaining, paginationResult, items });
 	}
 
 	static async addList(req, res) {
@@ -49,8 +57,7 @@ export default class ListController {
 
 	static async addItemToList(req, res) {
 		const { _id: userId } = req.user;
-		const { id: listId } = req.params;
-		const { id: itemId } = req.body;
+		const { id: itemId, listId } = req.body;
 		const { err, status, message, list } = await List.addToList(listId, userId, itemId);
 		if (err) return res.status(status).send({ error: true, message });
 		await list.save();
@@ -59,8 +66,7 @@ export default class ListController {
 
 	static async removeFromList(req, res) {
 		const { _id: userId } = req.user;
-		const { id: listId } = req.params;
-		const { id: itemId } = req.body;
+		const { id: itemId, listId } = req.body;
 		const { err, status, message, list } = await List.removeFromList(listId, userId, itemId);
 		if (err) return res.status(status).send({ error: true, message });
 		await list.save();

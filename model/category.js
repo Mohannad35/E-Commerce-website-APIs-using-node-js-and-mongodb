@@ -1,9 +1,11 @@
 import { unlink } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import mongoose from 'mongoose';
-import logger from '../middleware/logger.js';
 import _ from 'lodash';
+import logger from '../middleware/logger.js';
+import mongoose from 'mongoose';
+import slug from 'mongoose-slug-updater';
+mongoose.plugin(slug);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,6 +26,7 @@ const categorySchema = new mongoose.Schema(
 		timestamps: true
 	}
 );
+categorySchema.index({ slug: 1 }, { unique: true });
 
 categorySchema.statics.getCategories = async function (query) {
 	let { title, parentId, isParent, main, slug, skip, limit, pageNumber, pageSize, sort, catArr } =
@@ -127,11 +130,16 @@ categorySchema.statics.createCategory = async function (title, img, parentId = n
 			await parent.save();
 		}
 	}
-	const category = new Category({
-		title,
-		img: `http://localhost:5000/categories/${img.filename}`,
-		parent: parentId ? { parentId: parent._id, parentTitle: parent.title } : null
-	});
+	const category = img
+		? new Category({
+				title,
+				img: `http://localhost:5000/categories/${img.filename}`,
+				parent: parentId ? { parentId: parent._id, parentTitle: parent.title } : null
+		  })
+		: new Category({
+				title,
+				parent: parentId ? { parentId: parent._id, parentTitle: parent.title } : null
+		  });
 	return { category };
 };
 
