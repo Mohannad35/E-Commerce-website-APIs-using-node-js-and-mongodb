@@ -23,7 +23,13 @@ router.post('/', [auth, validate('body', Validator.cartItems)], CartController.a
 router.delete(
 	'/:id',
 	[auth, validateObjectId, validate('body', Validator.quantity)],
-	CartController.reduceItemInCart
+	CartController.deleteItemFromCart
+);
+
+router.patch(
+	'/:id',
+	[auth, validateObjectId, validate('body', Validator.quantity)],
+	CartController.editItemInCart
 );
 
 export default router;
