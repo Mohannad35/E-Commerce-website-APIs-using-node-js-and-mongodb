@@ -10,6 +10,7 @@ import listRouter from '../routes/list.js';
 import rateRouter from '../routes/rate.js';
 import brandRouter from '../routes/brand.js';
 import orderRouter from '../routes/order.js';
+import couponRouter from '../routes/coupon.js';
 import googleRouter from '../routes/googleAuth.js';
 import categoryRouter from '../routes/category.js';
 import facebookRouter from '../routes/facebookAuth.js';
@@ -30,6 +31,7 @@ export default function (app) {
 	app.use('/api/rate', rateRouter);
 	app.use('/api/brand', brandRouter);
 	app.use('/api/order', orderRouter);
+	app.use('/api/coupon', couponRouter);
 	app.use('/auth/google', googleRouter);
 	app.use('/api/category', categoryRouter);
 	app.use('/auth/facebook', facebookRouter);

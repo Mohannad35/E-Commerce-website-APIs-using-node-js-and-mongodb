@@ -35,9 +35,9 @@ const cartSchema = new mongoose.Schema(
 					min: [0, 'Invalid price']
 				},
 				img: [{ type: String, trim: true }],
-				category:{type: String},
-				brand:{type: String},
-				rating:{type: String}
+				category: { type: String },
+				brand: { type: String },
+				rating: { type: String }
 			}
 		],
 		bill: {
@@ -70,15 +70,25 @@ cartSchema.statics.createCart = async function (owner) {
 };
 
 cartSchema.statics.addToCart = async function (owner, itemId, Quantity) {
-	const quantity=parseInt(Quantity)
+	const quantity = parseInt(Quantity);
 	let cart = await Cart.getCart(owner);
 	if (!cart) cart = await Cart.createCart(owner);
-    const item = await Item.getItemById(itemId, true);
+	const item = await Item.getItemById(itemId, true);
 	if (!item) return { err: true, status: 404, message: 'Item not found' };
-	const { name, price,img,category,brand,rating} = item;
+	const { name, price, img, category, brand, rating } = item;
 	const itemIndex = cart.items.findIndex(obj => obj.item.equals(itemId));
 	if (itemIndex !== -1) cart.items[itemIndex].quantity += quantity;
-	else cart.items.push({ item: itemId, name, quantity, price,img,category: category.title, brand: brand.name,rating });
+	else
+		cart.items.push({
+			item: itemId,
+			name,
+			quantity,
+			price,
+			img,
+			category: category.title,
+			brand: brand && brand.name,
+			rating
+		});
 	cart.bill = cart.items.reduce((acc, cur) => acc + cur.quantity * cur.price, 0);
 	return { cart };
 };
@@ -94,28 +104,28 @@ cartSchema.statics.reduceItemInCart = async function (owner, itemId, quantity = 
 	return { cart };
 };
 
-cartSchema.statics.deleteItemFromCart = async function (owner, itemId){
+cartSchema.statics.deleteItemFromCart = async function (owner, itemId) {
 	let cart = await Cart.findOne({ owner }, 'owner items bill');
 	if (!cart) return { err: true, status: 404, message: 'Cart not found' };
 	const itemIndex = cart.items.findIndex(obj => obj.item.equals(itemId));
 	if (itemIndex === -1) return { err: true, status: 404, message: `Item dosn't exist in cart` };
-	cart.items[itemIndex].quantity=0;
+	cart.items[itemIndex].quantity = 0;
 	if (cart.items[itemIndex].quantity <= 0 || quantity === -1) cart.items.splice(itemIndex, 1);
 	cart.bill = cart.items.reduce((acc, curr) => acc + curr.quantity * curr.price, 0);
 	return { cart };
-}
+};
 
-cartSchema.statics.editItemInCart = async function (owner, itemId,Quantity){
-	const quantity=parseInt(Quantity)
+cartSchema.statics.editItemInCart = async function (owner, itemId, Quantity) {
+	const quantity = parseInt(Quantity);
 	let cart = await Cart.findOne({ owner }, 'owner items bill');
 	if (!cart) return { err: true, status: 404, message: 'Cart not found' };
 	const itemIndex = cart.items.findIndex(obj => obj.item.equals(itemId));
 	if (itemIndex === -1) return { err: true, status: 404, message: `Item dosn't exist in cart` };
-	cart.items[itemIndex].quantity=quantity;
+	cart.items[itemIndex].quantity = quantity;
 	if (cart.items[itemIndex].quantity <= 0 || quantity === -1) cart.items.splice(itemIndex, 1);
 	cart.bill = cart.items.reduce((acc, curr) => acc + curr.quantity * curr.price, 0);
 	return { cart };
-}
+};
 
 const Cart = mongoose.model('Cart', cartSchema, 'cart');
 export default Cart;
