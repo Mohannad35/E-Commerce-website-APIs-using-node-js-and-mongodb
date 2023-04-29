@@ -57,4 +57,20 @@ export default class CouponController {
 		if (err) return res.status(status).send({ error: true, message });
 		res.send({ delete: true, coupon });
 	}
+
+	static async applyCoupon(req, res) {
+		const { _id } = req.user;
+		const { code } = req.body;
+		const { err, status, message, cart } = await Coupon.applyCoupon(_id, code);
+		if (err) return res.status(status).send({ error: true, message });
+		res.send({ cart });
+	}
+	
+	static async cancelCoupon(req, res) {
+		const { _id } = req.user;
+		const { code } = req.body;
+		const { err, status, message, cart } = await Coupon.cancelCoupon(_id, code);
+		if (err) return res.status(status).send({ error: true, message });
+		res.send({ cart });
+	}
 }

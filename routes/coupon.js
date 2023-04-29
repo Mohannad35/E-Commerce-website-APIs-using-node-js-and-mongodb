@@ -13,6 +13,18 @@ router.get('/', [validate('query', Validator.getCoupons)], CouponController.coup
 router.get('/:id', [validateObjectId], CouponController.coupon);
 
 router.post(
+	'/apply-coupon',
+	[auth, validate('body', Validator.coupon)],
+	CouponController.applyCoupon
+);
+
+router.post(
+	'/cancel-coupon',
+	[auth, validate('body', Validator.coupon)],
+	CouponController.cancelCoupon
+);
+
+router.post(
 	'/',
 	[auth, isVendor, validate('body', Validator.addCoupon)],
 	CouponController.addCoupon
@@ -20,12 +32,7 @@ router.post(
 
 router.patch(
 	'/:id',
-	[
-		auth,
-		isVendor,
-		validateObjectId,
-		validate('body', Validator.updateCoupon)
-	],
+	[auth, isVendor, validateObjectId, validate('body', Validator.updateCoupon)],
 	CouponController.updateCoupon
 );
 

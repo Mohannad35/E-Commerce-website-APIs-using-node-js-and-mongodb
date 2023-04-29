@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import moment from 'moment';
 import User from './user.js';
+import Cart from './cart.js';
 
 const couponSchema = new mongoose.Schema(
 	{
@@ -9,7 +10,7 @@ const couponSchema = new mongoose.Schema(
 			type: Number,
 			required: true,
 			default: 0,
-			min: 0,
+			min: 1,
 			max: 99,
 			get: v => (Math.round(v * 100) / 100).toFixed(2),
 			set: v => (Math.round(v * 100) / 100).toFixed(2)
@@ -127,6 +128,87 @@ couponSchema.statics.deleteCoupon = async function (id, owner) {
 
 	await Coupon.deleteOne({ _id: coupon._id });
 	return { coupon };
+};
+
+couponSchema.statics.applyCoupon = async function (owner, code) {
+	const cart = await Cart.findOne({ owner }).populate('items.item');
+	if (!cart || cart.items.length === 0)
+		return { err: true, status: 400, message: 'Cart is empty!' };
+
+	const coupon = await Coupon.findOne({ code });
+	if (!coupon || coupon.expireAt < new Date() || coupon.validFrom > new Date())
+		return { err: true, status: 400, message: 'Invalid coupon.' };
+
+	if (cart.coupon.includes(code))
+		return { err: true, status: 400, message: 'Coupon already applied.' };
+
+	if (coupon.vendor) {
+		for (let item of cart.items) {
+			if (coupon.vendor.equals(item.item.owner)) {
+				item.priceAfter = item.priceAfter
+					? parseFloat(item.priceAfter) * (1 - coupon.discount / 100)
+					: parseFloat(item.price) * (1 - coupon.discount / 100);
+			}
+		}
+	} else {
+		for (let item of cart.items) {
+			item.priceAfter = item.priceAfter
+				? parseFloat(item.priceAfter) * (1 - coupon.discount / 100)
+				: parseFloat(item.price) * (1 - coupon.discount / 100);
+		}
+	}
+
+	cart.bill = cart.items.reduce(
+		(acc, cur) => acc + cur.quantity * (cur.priceAfter ? cur.priceAfter : cur.price),
+		0
+	);
+	cart.billBefore = cart.items.reduce((acc, cur) => acc + cur.quantity * cur.price, 0);
+
+	cart.coupon.push(code);
+	await cart.save();
+
+	return { cart: await Cart.findOne({ owner }) };
+};
+
+couponSchema.statics.cancelCoupon = async function (owner, code) {
+	const cart = await Cart.findOne({ owner }).populate('items.item');
+	if (!cart || cart.items.length === 0)
+		return { err: true, status: 400, message: 'Cart is empty!' };
+
+	const coupon = await Coupon.findOne({ code });
+	if (!coupon || coupon.expireAt < new Date() || coupon.validFrom > new Date())
+		return { err: true, status: 400, message: 'Invalid coupon.' };
+
+	if (!cart.coupon.includes(code))
+		return { err: true, status: 400, message: 'Coupon is not applied.' };
+
+	cart.coupon = cart.coupon.filter(value => value !== code);
+
+	if (cart.coupon.length <= 0) {
+		for (let item of cart.items) item.priceAfter = undefined;
+	} else {
+		if (coupon.vendor) {
+			for (let item of cart.items) {
+				if (coupon.vendor.equals(item.item.owner)) {
+					item.priceAfter = parseFloat(item.priceAfter) / (1 - coupon.discount / 100);
+				}
+			}
+		} else {
+			for (let item of cart.items) {
+				item.priceAfter = parseFloat(item.priceAfter) / (1 - coupon.discount / 100);
+			}
+		}
+	}
+
+	cart.bill = cart.items.reduce(
+		(acc, cur) => acc + cur.quantity * (cur.priceAfter ? cur.priceAfter : cur.price),
+		0
+	);
+	cart.billBefore = cart.items.reduce((acc, cur) => acc + cur.quantity * cur.price, 0);
+
+	await cart.save();
+
+	return { cart: await Cart.findOne({ owner }) };
 };
 
 // clean up expired coupons

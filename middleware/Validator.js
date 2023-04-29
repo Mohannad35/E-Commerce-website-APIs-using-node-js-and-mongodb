@@ -306,7 +306,8 @@ export default class Validator {
 		const Schema = Joi.object({
 			paymentMethod: Joi.string().allow('cash', 'credit card'),
 			contactPhone: joiPhoneNumber.required(),
-			address: Joi.string().min(3).max(1024).required()
+			address: Joi.string().min(3).max(1024).required(),
+			coupon: Joi.string()
 		});
 		return Schema.validate(order, { convert: false, abortEarly: false });
 	}
@@ -480,6 +481,13 @@ export default class Validator {
 			discount: Joi.number().min(0).max(99).required(),
 			expireAt: Joi.string().allow(''),
 			validFrom: Joi.string().allow('')
+		});
+		return Schema.validate(coupon, { convert: false, abortEarly: false });
+	}
+
+	static coupon(coupon) {
+		const Schema = Joi.object({
+			code: Joi.string()
 		});
 		return Schema.validate(coupon, { convert: false, abortEarly: false });
 	}
