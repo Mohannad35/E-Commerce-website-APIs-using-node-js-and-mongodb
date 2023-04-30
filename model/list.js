@@ -73,18 +73,19 @@ listSchema.statics.getList = async function (id, userid, name, populate, page, p
 			numberOfPages = Math.ceil(total / pageSize);
 			remaining = total - skip - limit > 0 ? total - skip - limit : 0;
 			return {
-				total,
+				total: total || 0,
 				remaining,
 				paginationResult: {
 					numberOfPages,
 					currentPage: parseInt(page),
 					limit: parseInt(pageSize)
 				},
-				items
+				items: items || []
 			};
 		}
-		return { total, remaining: 0, items };
+		return { total: total || 0, remaining: 0, items: items || [] };
 	}
+	return { total: 0, remaining: 0, items: [] };
 };
 
 listSchema.statics.createList = async function (name, userid) {

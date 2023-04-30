@@ -4,8 +4,9 @@ import Coupon from '../model/coupon.js';
 export default class CouponController {
 	// get all items from database and return them as JSON objects
 	static async coupons(req, res) {
+		const { user } = req;
 		const { query } = req;
-		const { total, paginationResult, coupons } = await Coupon.getCoupons(query);
+		const { total, paginationResult, coupons } = await Coupon.getCoupons(user, query);
 		res.send({ length: coupons.length, total, paginationResult, coupons });
 	}
 
@@ -65,7 +66,7 @@ export default class CouponController {
 		if (err) return res.status(status).send({ error: true, message });
 		res.send({ cart });
 	}
-	
+
 	static async cancelCoupon(req, res) {
 		const { _id } = req.user;
 		const { code } = req.body;

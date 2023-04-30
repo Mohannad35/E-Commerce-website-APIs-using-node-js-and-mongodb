@@ -24,8 +24,9 @@ const couponSchema = new mongoose.Schema(
 	}
 );
 
-couponSchema.statics.getCoupons = async function (query) {
-	let { code, all, working, expireAt, expireDay, skip, limit, sort, pageNumber, pageSize } = query;
+couponSchema.statics.getCoupons = async function (user, query) {
+	let { code, skip, limit, sort, pageNumber, pageSize } = query;
+
 	if (pageNumber || pageSize) {
 		limit = undefined;
 		skip = undefined;
@@ -37,34 +38,19 @@ couponSchema.statics.getCoupons = async function (query) {
 	sort = sort || '';
 	if (sort) sort = sort.split(',').join(' ');
 	code = code ? new RegExp(code, 'i') : /.*/;
-	expireDay = expireDay && parseInt(expireDay);
-	expireAt = expireDay
-		? moment().add(expireDay, 'days').format('YYYY-MM-DD')
-		: expireAt || moment();
-	const coupons = all
-		? await Coupon.find({}, {}, { skip, limit, sort }).collation({ locale: 'en' })
-		: working
-		? await Coupon.find(
-				{ code, expireAt: { $gte: new Date(expireAt) }, validFrom: { $lte: new Date() } },
-				{},
-				{ skip, limit, sort }
-		  ).collation({ locale: 'en' })
-		: await Coupon.find(
-				{ code, expireAt: { $gte: new Date(expireAt) } },
-				{},
-				{ skip, limit, sort }
-		  ).collation({ locale: 'en' });
-	const total = all
-		? await Coupon.countDocuments().collation({ locale: 'en' })
-		: working
-		? await Coupon.countDocuments({
-				code,
-				expireAt: { $gte: new Date(expireAt) },
-				validFrom: { $lte: new Date() }
-		  }).collation({ locale: 'en' })
-		: await Coupon.countDocuments({ code, expireAt: { $gte: new Date(expireAt) } }).collation({
-				locale: 'en'
-		  });
+
+	let coupons = [],
+		total = 0;
+	if (user.accountType === 'vendor') {
+		coupons = await Coupon.find({ code, vendor: user._id }, {}, { skip, limit, sort }).collation({
+			locale: 'en'
+		});
+		total = await Coupon.countDocuments({ code, vendor: user._id }).collation({ locale: 'en' });
+	} else if (user.accountType === 'admin') {
+		coupons = await Coupon.find({ code }, {}, { skip, limit, sort }).collation({ locale: 'en' });
+		total = await Coupon.countDocuments({ code }).collation({ locale: 'en' });
+	}
+
 	const numberOfPages = Math.ceil(total / pageSize);
 	return {
 		total,

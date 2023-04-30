@@ -8,7 +8,7 @@ import validateObjectId from '../middleware/validateObjectId.js';
 
 const router = Router();
 
-router.get('/', [validate('query', Validator.getCoupons)], CouponController.coupons);
+router.get('/', [auth, isVendor,  validate('query', Validator.getCoupons)], CouponController.coupons);
 
 router.get('/:id', [validateObjectId], CouponController.coupon);
 

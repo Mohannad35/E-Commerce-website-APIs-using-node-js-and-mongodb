@@ -77,6 +77,7 @@ cartSchema.statics.addToCart = async function (owner, itemId, Quantity) {
 	if (!cart) cart = await Cart.createCart(owner);
 	const item = await Item.getItemById(itemId, true);
 	if (!item) return { err: true, status: 404, message: 'Item not found' };
+	console.log(item);
 	const { name, price, img, category, brand, rating } = item;
 	const itemIndex = cart.items.findIndex(obj => obj.item.equals(itemId));
 
