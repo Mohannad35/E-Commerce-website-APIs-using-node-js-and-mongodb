@@ -36,15 +36,12 @@ const rateSchema = new mongoose.Schema(
 rateSchema.index({ slug: 1 }, { unique: true });
 
 rateSchema.statics.getRates = async function (query) {
-	let { skip, sort, limit, pageNumber, pageSize, userId, itemId } = query;
-	limit = pageNumber || pageSize ? undefined : limit;
-	skip = pageNumber || pageSize ? undefined : skip;
-	pageSize = pageNumber && !pageSize ? 20 : pageSize;
-	pageNumber = !pageNumber && pageSize ? 1 : pageNumber;
-	skip = (pageNumber - 1) * pageSize || skip || 0;
-	limit = pageSize || limit || 1000;
-	sort = sort || '_id';
-	sort = sort.split(',').join(' ');
+	let { sort, pageNumber, pageSize, userId, itemId } = query;
+	pageNumber = pageNumber ? parseInt(pageNumber) : 1;
+	pageSize = pageSize ? parseInt(pageSize) : 20;
+	let skip = (pageNumber - 1) * pageSize;
+	let limit = pageSize;
+	sort = sort ? sort.split(',').join(' ') : '_id';
 
 	userId = userId ? userId.split(',') : undefined;
 	itemId = itemId ? itemId.split(',') : undefined;
@@ -82,7 +79,7 @@ rateSchema.statics.getRates = async function (query) {
 					userId: userId ? { $nin: userId } : { $exists: true }
 				},
 				{},
-				{ skip: --skip, limit, sort }
+				{ skip: skip <= 0 ? 0 : skip - 1, limit, sort }
 		  )
 				.populate('userId', 'name email')
 				.collation({ locale: 'en' });

@@ -9,17 +9,8 @@ const __dirname = dirname(__filename);
 
 const brandSchema = new mongoose.Schema(
 	{
-		name: {
-			type: String,
-			required: true,
-			unique: true,
-			trim: true,
-			minLength: 2,
-			maxLength: 255
-		},
-		img: {
-			type: String
-		}
+		name: { type: String, required: true, unique: true, trim: true, minLength: 2, maxLength: 255 },
+		img: { type: String }
 	},
 	{
 		timestamps: true

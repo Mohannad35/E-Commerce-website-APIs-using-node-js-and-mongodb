@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 import sgMail from '@sendgrid/mail';
+import moment from 'moment';
 import config from 'config';
 import Item from './item.js';
 import Cart from './cart.js';
-import moment from 'moment';
 import User from './user.js';
 sgMail.setApiKey(config.get('sendgrid_apikey'));
 

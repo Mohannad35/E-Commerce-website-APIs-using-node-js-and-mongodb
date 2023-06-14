@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import passport from 'passport';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import User from '../model/user.js';
+import logger from '../middleware/logger.js';
 const router = Router();
 
 passport.use(
@@ -24,7 +25,7 @@ passport.use(
 				const exist = await User.findOne({ email: profile._json.email });
 				if (exist)
 					return done(null, { err: true, msg: `This email already linked to ${exist.provider}` });
-				console.log('Adding new facebook user to DB..');
+				logger.info('Adding new facebook user to DB..');
 				const user = new User({
 					accountId: profile._json.id,
 					provider: profile.provider,
@@ -37,7 +38,7 @@ passport.use(
 				_.set(user, 'jwtToken', token);
 				return done(null, user);
 			} else {
-				console.log('Facebook User already exist in DB..');
+				logger.info('Facebook User already exist in DB..');
 				const token = generateToken(user);
 				_.set(user, 'jwtToken', token);
 				return done(null, user);
@@ -48,29 +49,13 @@ passport.use(
 
 router.get('/', passport.authenticate('facebook', { scope: ['email'] }));
 
-router.get(
-	'/callback',
-	passport.authenticate('facebook', {
-		session: false,
-		failureRedirect: '/auth/facebook/error'
-	}),
-	(req, res) => {
-		if (req.user.err) return res.status(400).redirect(`/auth/facebook/error?msg=${req.user.msg}`);
-		const token = req.user.jwtToken;
-		res.cookie('x-auth-token', token);
-		res.redirect(`/auth/facebook/success?id=${req.user._id}`);
-	}
-);
-
-router.get('/error', (req, res) => {
-	const { msg } = req.query;
-	res.send({ msg: msg || 'Something went wrong while signing with facebook.' });
-});
-
-router.get('/success', (req, res) => {
-	const token = req.cookies['x-auth-token'];
-	res.clearCookie('x-auth-token');
-	res.header('x-auth-token', token).send({ msg: 'login successfully.' });
+router.get('/callback', passport.authenticate('facebook', { session: false }), (req, res) => {
+	if (req.user.err) return res.redirect(`${config.get('client_url')}error?msg=${req.user.msg}`);
+	const token = req.user.jwtToken;
+	res.cookie('x-auth-token', token);
+	const user = JSON.stringify(req.user);
+	res.cookie('x-auth-user', user);
+	res.redirect(`${config.get('client_url')}error`);
 });
 
 function generateToken(user) {

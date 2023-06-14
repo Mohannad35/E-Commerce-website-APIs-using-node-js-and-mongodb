@@ -2,25 +2,25 @@ import { Router } from 'express';
 import _ from 'lodash';
 import auth from '../middleware/auth.js';
 import validate from '../middleware/validateReq.js';
-import Validator from '../middleware/Validator.js';
+import RateValidator from '../validation/rate.js';
 import RateController from '../controller/rate.js';
 import validateObjectId from '../middleware/validateObjectId.js';
 
 const router = Router();
 
 // fetch all rates
-router.get('/', [validate('query', Validator.getRates)], RateController.rates);
+router.get('/', [validate('query', RateValidator.getRates)], RateController.rates);
 
 // fetch an rate
 router.get('/:id', [validateObjectId], RateController.rate);
 
 // create an rate
-router.post('/', [auth, validate('body', Validator.addRate)], RateController.addRate);
+router.post('/', [auth, validate('body', RateValidator.addRate)], RateController.addRate);
 
 // update an rate
 router.patch(
 	'/:id',
-	[auth, validateObjectId, validate('body', Validator.editRate)],
+	[auth, validateObjectId, validate('body', RateValidator.editRate)],
 	RateController.updateRate
 );
 

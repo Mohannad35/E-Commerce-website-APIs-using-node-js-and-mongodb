@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
-// import { sha224, sha256 } from 'js-sha256';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import config from 'config';
@@ -183,9 +182,9 @@ userSchema.statics.stats = async function (query) {
 	if (date) date = date.split(',');
 	if (gender) count = await User.countDocuments({ gender }, { skip, limit });
 	else if (accountType) count = await User.countDocuments({ accountType }, { skip, limit });
-	else if (date.length === 1)
+	else if (date && date.length === 1)
 		count = await User.countDocuments({ createdAt: { $gte: date[0] } }, { skip, limit });
-	else if (date.length === 2)
+	else if (date && date.length === 2)
 		count = await User.countDocuments(
 			{ $and: [{ createdAt: { $gte: date[0] } }, { createdAt: { $lte: date[1] } }] },
 			{ skip, limit }
@@ -195,10 +194,10 @@ userSchema.statics.stats = async function (query) {
 };
 
 userSchema.statics.vendorReq = async function (id, details) {
-	const request = Request.findById(id, '-password');
+	const request = await Request.findOne({ userId: id });
 	if (request) return { err: true, status: 400, message: 'Request already submitted' };
 	const result = await Request.create({
-		_id: id,
+		userId: id,
 		type: 'vendor',
 		details: details || 'Want to be a vendor'
 	});
@@ -206,13 +205,21 @@ userSchema.statics.vendorReq = async function (id, details) {
 };
 
 userSchema.statics.getVendorReq = async function () {
-	return await Request.find({}).collation({ locale: 'en' });
+	return await Request.find({}).populate('userId', '-password').collation({ locale: 'en' });
+};
+
+userSchema.statics.cancelVendorReq = async function (id) {
+	const request = await Request.findByIdAndDelete(id);
+	const user = await User.findOne({ _id: request.userId });
+	return { user, request };
 };
 
 userSchema.statics.changeAccountType = async function (userId, type) {
-	const user = await User.findById(userId, 'name accountType __v');
+	const user = await User.findById(userId, '-password');
 	if (!user) return null;
 	user.accountType = type;
+	const req = await Request.findOne({ userId });
+	if (req) await Request.deleteOne({ userId });
 	return user;
 };
 

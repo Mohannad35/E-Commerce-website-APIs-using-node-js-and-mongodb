@@ -2,7 +2,6 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import cors from 'cors';
-import error from '../middleware/error.js';
 import userRouter from '../routes/user.js';
 import itemRouter from '../routes/item.js';
 import cartRouter from '../routes/cart.js';
@@ -15,6 +14,7 @@ import googleRouter from '../routes/googleAuth.js';
 import categoryRouter from '../routes/category.js';
 import facebookRouter from '../routes/facebookAuth.js';
 import allowedHeaders from '../middleware/allowedHeaders.js';
+import { errorHandler } from './issues.js';
 
 export default function (app) {
 	app.use(express.json());
@@ -24,6 +24,11 @@ export default function (app) {
 	app.use(helmet());
 	app.use(cors());
 	app.use(allowedHeaders);
+	// All controllers should live here
+	app.get('/', (req, res) => res.end('Hello world!'));
+	app.get('/debug-sentry', (req, res) => {
+		throw new Error('My first Sentry error!');
+	});
 	app.use('/api/user', userRouter);
 	app.use('/api/item', itemRouter);
 	app.use('/api/cart', cartRouter);
@@ -35,5 +40,5 @@ export default function (app) {
 	app.use('/auth/google', googleRouter);
 	app.use('/api/category', categoryRouter);
 	app.use('/auth/facebook', facebookRouter);
-	app.use(error);
+	errorHandler(app);
 }

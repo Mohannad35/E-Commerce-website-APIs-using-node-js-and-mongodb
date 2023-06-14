@@ -4,7 +4,7 @@ import auth from '../middleware/auth.js';
 import isAdmin from '../middleware/admin.js';
 import isVendor from '../middleware/vendor.js';
 import validate from '../middleware/validateReq.js';
-import Validator from '../middleware/validator.js';
+import OrderValidator from '../validation/order.js';
 import OrderController from '../controller/order.js';
 import validateObjectId from '../middleware/validateObjectId.js';
 const router = Router();
@@ -16,7 +16,7 @@ router.get('/', [auth], OrderController.getOrders);
 router.get('/:id', [auth, validateObjectId], OrderController.getOrder);
 
 // checkout
-router.post('/checkout', [auth, validate('body', Validator.order)], OrderController.checkout);
+router.post('/checkout', [auth, validate('body', OrderValidator.order)], OrderController.checkout);
 
 // delete order
 router.delete('/:id', [auth, validateObjectId], OrderController.cancelOrder);

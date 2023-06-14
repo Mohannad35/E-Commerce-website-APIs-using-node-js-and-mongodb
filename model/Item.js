@@ -60,9 +60,9 @@ itemSchema.statics.getItems = async function (query) {
 			{
 				name,
 				price: { $gte: from || 0, $lte: to || 10000000 },
-				owner: owner ? { $in: owner } : { $exists: true },
-				brand: brand ? { $in: brand } : { $exists: true },
-				category: category ? { $in: category } : { $exists: true }
+				owner: owner ? { $in: owner } : { $nin: [] },
+				brand: brand ? { $in: brand } : { $nin: [] },
+				category: category ? { $in: category } : { $nin: [] }
 			},
 			{},
 			{ skip, limit, sort }
@@ -70,9 +70,9 @@ itemSchema.statics.getItems = async function (query) {
 		total = await Item.countDocuments({
 			name,
 			price: { $gte: from || 0, $lte: to || 10000000 },
-			owner: owner ? { $in: owner } : { $exists: true },
-			brand: brand ? { $in: brand } : { $exists: true },
-			category: category ? { $in: category } : { $exists: true }
+			owner: owner ? { $in: owner } : { $nin: [] },
+			brand: brand ? { $in: brand } : { $nin: [] },
+			category: category ? { $in: category } : { $nin: [] }
 		});
 	}
 	const numberOfPages = Math.ceil(total / pageSize);

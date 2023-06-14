@@ -1,6 +1,6 @@
-import { Category } from '../model/category.js';
-import { Item } from './../model/item.js';
-import { User } from './../model/user.js';
+import Category from '../model/category.js';
+import Item from './../model/item.js';
+import User from './../model/user.js';
 
 function generateItemName(num) {
 	return `Product ${num < 10 ? `0${num}` : num}`;

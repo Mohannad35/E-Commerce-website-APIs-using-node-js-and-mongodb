@@ -4,7 +4,7 @@ import multer from 'multer';
 import auth from '../middleware/auth.js';
 import isVendor from '../middleware/vendor.js';
 import validate from '../middleware/validateReq.js';
-import Validator from '../middleware/Validator.js';
+import ItemValidator from '../validation/item.js';
 import ItemController from '../controller/item.js';
 import validateObjectId from '../middleware/validateObjectId.js';
 
@@ -19,7 +19,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // fetch all items
-router.get('/', [validate('query', Validator.getItems)], ItemController.items);
+router.get('/', [validate('query', ItemValidator.getItems)], ItemController.items);
 
 // fetch an item
 router.get('/:id', [validateObjectId], ItemController.getOneItem);
@@ -27,7 +27,7 @@ router.get('/:id', [validateObjectId], ItemController.getOneItem);
 // create an item
 router.post(
 	'/',
-	[upload.array('images', 5), auth, isVendor, validate('body', Validator.addItem)],
+	[upload.array('images', 5), auth, isVendor, validate('body', ItemValidator.addItem)],
 	ItemController.addItem
 );
 
@@ -39,7 +39,7 @@ router.patch(
 		auth,
 		isVendor,
 		validateObjectId,
-		validate('body', Validator.updateItem)
+		validate('body', ItemValidator.updateItem)
 	],
 	ItemController.updateItem
 );

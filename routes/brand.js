@@ -3,7 +3,7 @@ import { Router } from 'express';
 import auth from '../middleware/auth.js';
 import isAdmin from '../middleware/admin.js';
 import validate from '../middleware/validateReq.js';
-import Validator from '../middleware/validator.js';
+import BrandValidator from '../validation/brand.js';
 import BrandController from '../controller/brand.js';
 import validateObjectId from '../middleware/validateObjectId.js';
 
@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // fetch all Brands
-router.get('/', BrandController.brands);
+router.get('/', [validate('query', BrandValidator.getBrands)], BrandController.brands);
 
 // fetch a Brand
 router.get('/:id', [validateObjectId], BrandController.brand);
@@ -26,7 +26,7 @@ router.get('/:id', [validateObjectId], BrandController.brand);
 // create a Brand
 router.post(
 	'/',
-	[upload.single('image'), auth, isAdmin, validate('body', Validator.addBrand)],
+	[upload.single('image'), auth, isAdmin, validate('body', BrandValidator.addBrand)],
 	BrandController.addBrand
 );
 
@@ -38,7 +38,7 @@ router.patch(
 		auth,
 		isAdmin,
 		validateObjectId,
-		validate('body', Validator.updateBrand)
+		validate('body', BrandValidator.updateBrand)
 	],
 	BrandController.updateBrand
 );

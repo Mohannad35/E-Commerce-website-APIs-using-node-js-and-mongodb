@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { User } from './../model/user.js';
+import User from './../model/user.js';
 
 let admin = {
 	name: `Ahmed`,

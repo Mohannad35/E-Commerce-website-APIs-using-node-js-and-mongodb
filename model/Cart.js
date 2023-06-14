@@ -48,23 +48,12 @@ const cartSchema = new mongoose.Schema(
 	}
 );
 
-cartSchema.statics.getCart = async function (owner, full = false) {
-	if (full)
-		return await Cart.findOne(
-			{ owner },
-			{},
-			{
-				populate: { path: 'owner', select: 'name' },
-				populate: { path: 'items.item', select: '_id img description category owner' }
-			}
-		);
-	return await Cart.findOne(
-		{ owner },
-		{},
-		{
-			populate: { path: 'owner', select: 'name' }
-		}
-	);
+cartSchema.statics.getCart = async function (owner, full = 'false') {
+	if (full === 'true')
+		return await Cart.findOne({ owner })
+			.populate('owner', 'name')
+			.populate('items.item', '_id img description category owner');
+	return await Cart.findOne({ owner }).populate('owner', 'name');
 };
 
 cartSchema.statics.createCart = async function (owner) {
@@ -77,12 +66,12 @@ cartSchema.statics.addToCart = async function (owner, itemId, Quantity) {
 	if (!cart) cart = await Cart.createCart(owner);
 	const item = await Item.getItemById(itemId, true);
 	if (!item) return { err: true, status: 404, message: 'Item not found' };
-	console.log(item);
 	const { name, price, img, category, brand, rating } = item;
 	const itemIndex = cart.items.findIndex(obj => obj.item.equals(itemId));
 
-	if (itemIndex !== -1) cart.items[itemIndex].quantity += quantity;
-	else {
+	if (itemIndex !== -1) {
+		cart.items[itemIndex].quantity += quantity;
+	} else {
 		let priceAfter;
 		if (cart.coupon.length > 0)
 			for (let cop of cart.coupon) {

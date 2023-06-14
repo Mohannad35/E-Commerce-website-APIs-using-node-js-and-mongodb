@@ -1,8 +1,8 @@
-import { Category } from './../model/category.js';
+import Category from './../model/category.js';
 
-function seedCategory(title, parentId, parentTitle) {
+function seedCategory(title, parentId, parentTitle, isParent = false) {
 	try {
-		return new Category({ title, parent: { parentId, parentTitle } });
+		return new Category({ title, parent: { parentId, parentTitle }, isParent });
 	} catch (error) {
 		console.log(error);
 		return error;
@@ -13,18 +13,18 @@ export default async function () {
 	console.log(`seeding categories...`);
 	console.log(await Category.deleteMany({}));
 	for (let element of Categories) {
-		const category = seedCategory(element.parent);
+		const category = seedCategory(element.parent, undefined, undefined, true);
 		await category.save();
 		for (let child of element.children) {
 			if (child.parent) {
-				const parentCh = seedCategory(child.parent, category._id, category.title);
+				const parentCh = seedCategory(child.parent, category._id, category.title, true);
 				await parentCh.save();
-				child.children.forEach(async ch => {
-					const chh = seedCategory(ch, parentCh._id, parentCh.title);
+				for (let ch of child.children) {
+					const chh = seedCategory(ch, parentCh._id, parentCh.title, false);
 					await chh.save();
-				});
+				}
 			} else {
-				const ch = seedCategory(child, category._id, category.title);
+				const ch = seedCategory(child, category._id, category.title, false);
 				await ch.save();
 			}
 		}

@@ -103,6 +103,29 @@ export default class UserController {
 		res.status(200).send({ message: 'vendor request submitted' });
 	}
 
+	static async cancelVendorRequest(req, res) {
+		const { id } = req.params;
+		const { user, request } = await User.cancelVendorReq(id);
+		const msg = {
+			to: user.email,
+			from: {
+				email: 'mohannadragab53@gmail.com',
+				name: 'E-commerce Team'
+			},
+			subject: config.get('project_issuer') + ' Vendor Request Declined',
+			html:
+				'Hi ' +
+				user.name +
+				',<br>Your vendor request have been declined.<br>' +
+				'Please apply another request with more details.<br>' +
+				'Thank you for choosing ' +
+				config.get('project_issuer') +
+				'!'
+		};
+		await sgMail.send(msg);
+		res.status(200).send({ request });
+	}
+
 	static async getVendorRequests(req, res) {
 		const requests = await User.getVendorReq();
 		res.status(200).send({ length: requests.length, requests });
@@ -115,6 +138,28 @@ export default class UserController {
 		const user = await User.changeAccountType(id, type);
 		if (!user) return res.status(404).send({ error: true, message: 'User not found' });
 		await user.save();
+		const link = `${config.get('client_url')}user/profile?refresh=true`;
+		const msg = {
+			to: user.email,
+			from: {
+				email: 'mohannadragab53@gmail.com',
+				name: 'E-commerce Team'
+			},
+			subject: config.get('project_issuer') + ' Vendor Request Accepted',
+			html:
+				'Hi ' +
+				user.name +
+				',<br>Congratulations! Your vendor request have been accepted.<br>' +
+				'You can now access all the vendor features and benefits of our app.<br>' +
+				'Please note that you have to log out and log back in to see changes.<br>Or ' +
+				'<a href=' +
+				link +
+				'>Click here</a> to see changes.<br>' +
+				'Thank you for choosing ' +
+				config.get('project_issuer') +
+				'!'
+		};
+		await sgMail.send(msg);
 		res.send({ update: true, user: _.pick(user, ['name', 'accountType']) });
 	}
 
@@ -276,7 +321,7 @@ export default class UserController {
 	static async changeForgetPassword(req, res) {
 		const { code, password } = req.body;
 		const user = await User.findOne({ code });
-		if (!user) res.status(404).send({ error: true, message: 'Code is not valid anymore' });
+		if (!user) return res.status(404).send({ error: true, message: 'Code is not valid anymore' });
 		user.password = password;
 		user.code = undefined;
 		await user.save();

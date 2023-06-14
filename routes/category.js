@@ -3,7 +3,7 @@ import { Router } from 'express';
 import auth from '../middleware/auth.js';
 import isAdmin from '../middleware/admin.js';
 import validate from '../middleware/validateReq.js';
-import Validator from '../middleware/validator.js';
+import CategoryValidator from '../validation/category.js';
 import CategoryController from '../controller/category.js';
 import validateObjectId from '../middleware/validateObjectId.js';
 
@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // fetch all Categories
-router.get('/', [validate('query', Validator.categories)], CategoryController.categories);
+router.get('/', [validate('query', CategoryValidator.categories)], CategoryController.categories);
 
 // fetch sub Categories
 router.get('/sub/:id', [validateObjectId], CategoryController.subCategories);
@@ -29,7 +29,7 @@ router.get('/:id', [validateObjectId], CategoryController.category);
 // create a Category
 router.post(
 	'/',
-	[upload.single('image'), auth, isAdmin, validate('body', Validator.addCategory)],
+	[upload.single('image'), auth, isAdmin, validate('body', CategoryValidator.addCategory)],
 	CategoryController.addCategory
 );
 
@@ -41,7 +41,7 @@ router.patch(
 		auth,
 		isAdmin,
 		validateObjectId,
-		validate('body', Validator.updateCategory)
+		validate('body', CategoryValidator.updateCategory)
 	],
 	CategoryController.updateCategory
 );
