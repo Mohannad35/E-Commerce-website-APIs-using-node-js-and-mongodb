@@ -4,12 +4,18 @@ import Order from './../model/order.js';
 export default class OrderController {
 	// get order for the logged in user
 	static async getOrders(req, res) {
-		orderDebugger(req.headers['user-agent']);
-		const { _id: owner } = req.user;
-		const { pageNumber, pageSize, sortBy } = req.query;
-		const orders = await Order.getOrders(owner, pageNumber, pageSize, sortBy);
-		const remainingOrders = await Order.remainingOrders(owner, pageNumber, pageSize, 100);
-		res.status(200).send({ pageLength: orders.length, remainingOrders, orders });
+		const { user } = req;
+		const { query } = req;
+		const { total, remaining, paginationResult, orders } = await Order.getOrders(user, query);
+		res.status(200).send({ length: orders.length, total, remaining, paginationResult, orders });
+	}
+
+	// get order by id
+	static async getOrder(req, res) {
+		const { id } = req.params;
+		const { err, status, message, order } = await Order.getOrder(id);
+		if (err) return res.status(status).send({ error: true, message });
+		res.status(200).send({ order });
 	}
 
 	// make an order (notify the vendors)

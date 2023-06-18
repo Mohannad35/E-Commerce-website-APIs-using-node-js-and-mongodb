@@ -6,7 +6,7 @@ import validate from '../middleware/validateReq.js';
 import UserValidator from '../validation/user.js';
 import UserController from '../controller/user.js';
 import validateObjectId from '../middleware/validateObjectId.js';
-const rouster = Router();
+const router = Router();
 
 // get user
 router.get('/me', [auth], UserController.user);
