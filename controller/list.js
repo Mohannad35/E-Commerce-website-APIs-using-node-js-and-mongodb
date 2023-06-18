@@ -11,11 +11,18 @@ export default class ListController {
 	}
 
 	static async list(req, res) {
-		listDebugger(req.headers['user-agent']);
-		const { id } = req.params;
-		const list = await List.getList(id);
-		if (!list) return res.status(404).send({ message: 'List not found' });
-		res.status(200).send({ list });
+		const { _id } = req.user;
+		const { name, listId, populate, page, pageSize } = req.query;
+		const { total, remaining, paginationResult, items } = await List.getList(
+			listId,
+			_id,
+			name,
+			populate,
+			page,
+			pageSize
+		);
+		if (!items) return res.status(404).send({ message: 'List not found' });
+		res.status(200).send({ length: items.length, total, remaining, paginationResult, items });
 	}
 
 	static async addList(req, res) {

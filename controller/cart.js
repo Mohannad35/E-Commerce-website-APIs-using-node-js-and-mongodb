@@ -44,7 +44,7 @@ export default class CartController {
 		await cart.save();
 		res.status(200).send({ cartid: cart._id, update: true });
 	}
-	
+
 	static async deleteItemFromCart(req, res) {
 		const { _id: owner } = req.user;
 		const { id: itemId } = req.params;
