@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const requestSchema = new mongoose.Schema(
 	{
-		_id: {
+		userId: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
 			required: true
@@ -20,4 +20,4 @@ const requestSchema = new mongoose.Schema(
 );
 
 const Request = mongoose.model('Request', requestSchema, 'request');
-module.exports = Request;
+export default Request;

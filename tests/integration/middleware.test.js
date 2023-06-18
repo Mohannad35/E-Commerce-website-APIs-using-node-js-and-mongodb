@@ -1,8 +1,8 @@
-const _ = require('lodash');
-const request = require('supertest');
-const Item = require('../../model/item.js');
-const User = require('../../model/user.js');
-const Category = require('../../model/category.js');
+import _ from 'lodash';
+import request from 'supertest';
+import Item from '../../model/item.js';
+import User from '../../model/user.js';
+import Category from '../../model/category.js';
 
 describe('auth middleware', () => {
 	let server, user, token;

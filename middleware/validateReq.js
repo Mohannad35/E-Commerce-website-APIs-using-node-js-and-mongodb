@@ -1,7 +1,12 @@
-const { unlink } = require('fs');
-const logger = require('../middleware/logger.js');
+import { unlink } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import logger from '../middleware/logger.js';
 
-module.exports = function (obj, validator) {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export default function (obj, validator) {
 	return async (req, res, next) => {
 		const { error } = validator(req[obj]);
 		if (error) {
@@ -26,4 +31,4 @@ module.exports = function (obj, validator) {
 		}
 		next();
 	};
-};
+}

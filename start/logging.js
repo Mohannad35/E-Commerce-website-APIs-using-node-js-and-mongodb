@@ -1,11 +1,14 @@
-const fs = require('fs');
-const debug = require('debug');
-const morgan = require('morgan');
-const { join } = require('path');
-const logger = require('../middleware/logger.js');
+import fs from 'fs';
+import debug from 'debug';
+import morgan from 'morgan';
+import { fileURLToPath } from 'url';
+import { join, dirname } from 'path';
+import logger from '../middleware/logger.js';
 const devDebugger = debug('app:dev');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-module.exports = function (app) {
+export default function (app) {
 	if (app.get('env') === 'development') {
 		const customFormat =
 			'[:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] [:response-time ms : :total-time ms] ":user-agent"';
@@ -39,4 +42,4 @@ module.exports = function (app) {
 		);
 		devDebugger(`env: ${app.get('env')}. Morgan enabled.`);
 	}
-};
+}

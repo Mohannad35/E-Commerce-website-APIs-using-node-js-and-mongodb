@@ -1,7 +1,9 @@
 {
+	"client_url": "",
 	"project_issuer": "",
 	"env": "",
 	"port": "",
+	"dsn": "",
 	"mongodb_url": "",
 	"jwtPrivateKey": "",
 	"logtailSourceToken": "",

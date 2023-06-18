@@ -1,20 +1,16 @@
-const { unlink } = require('fs');
-const mongoose = require('mongoose');
-const logger = require('../middleware/logger.js');
+import { unlink } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import mongoose from 'mongoose';
+import logger from '../middleware/logger.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const brandSchema = new mongoose.Schema(
 	{
-		name: {
-			type: String,
-			required: true,
-			unique: true,
-			trim: true,
-			minLength: 2,
-			maxLength: 255
-		},
-		img: {
-			type: String
-		}
+		name: { type: String, required: true, unique: true, trim: true, minLength: 2, maxLength: 255 },
+		img: { type: String }
 	},
 	{
 		timestamps: true
@@ -96,4 +92,4 @@ brandSchema.statics.deleteBrand = async function (id) {
 };
 
 const Brand = mongoose.model('Brand', brandSchema, 'brand');
-module.exports = Brand;
+export default Brand;

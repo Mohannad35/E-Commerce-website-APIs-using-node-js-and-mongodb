@@ -1,10 +1,10 @@
-const _ = require('lodash');
-const request = require('supertest');
-const mongoose = require('mongoose');
-const Item = require('../../model/item.js');
-const User = require('../../model/user.js');
-const Category = require('../../model/category.js');
-const server = require('../../index.js');
+import _ from 'lodash';
+import request from 'supertest';
+import mongoose from 'mongoose';
+import Item from '../../model/item.js';
+import User from '../../model/user.js';
+import Category from '../../model/category.js';
+import server from '../../index.js';
 
 describe('/item', () => {
 	let name, email, password, accountType, phoneNumber;

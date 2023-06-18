@@ -1,7 +1,7 @@
-const Brand = require('../model/brand');
-const _ = require('lodash');
+import _ from 'lodash';
+import Brand from '../model/brand.js';
 
-class BrandController {
+export default class BrandController {
 	// get all items from database and return them as JSON objects
 	static async brands(req, res) {
 		const { query } = req;
@@ -43,5 +43,3 @@ class BrandController {
 		res.send({ brandid: brand._id, delete: true, brand });
 	}
 }
-
-module.exports = BrandController;

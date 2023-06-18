@@ -1,7 +1,7 @@
-const _ = require('lodash');
-const List = require('../model/list');
+import _ from 'lodash';
+import List from './../model/list.js';
 
-class ListController {
+export default class ListController {
 	static async lists(req, res) {
 		const { _id } = req.user;
 		const { pageNumber, pageSize, sortBy } = req.query;
@@ -11,6 +11,7 @@ class ListController {
 	}
 
 	static async list(req, res) {
+		listDebugger(req.headers['user-agent']);
 		const { id } = req.params;
 		const list = await List.getList(id);
 		if (!list) return res.status(404).send({ message: 'List not found' });
@@ -49,8 +50,7 @@ class ListController {
 
 	static async addItemToList(req, res) {
 		const { _id: userId } = req.user;
-		const { id: listId } = req.params;
-		const { id: itemId } = req.body;
+		const { id: itemId, listId } = req.body;
 		const { err, status, message, list } = await List.addToList(listId, userId, itemId);
 		if (err) return res.status(status).send({ error: true, message });
 		await list.save();
@@ -59,12 +59,11 @@ class ListController {
 
 	static async removeFromList(req, res) {
 		const { _id: userId } = req.user;
-		const { id: listId } = req.params;
-		const { id: itemId } = req.body;
+		const { id: itemId, listId } = req.body;
 		const { err, status, message, list } = await List.removeFromList(listId, userId, itemId);
 		if (err) return res.status(status).send({ error: true, message });
 		await list.save();
-		res.status(200).send({ listId: list._id, add: true, list });
+		res.status(200).send({ listId: list._id, delete: true, list });
 	}
 
 	static async deleteList(req, res) {
@@ -75,5 +74,3 @@ class ListController {
 		res.send({ listId: list._id, delete: true });
 	}
 }
-
-module.exports = ListController;

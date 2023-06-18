@@ -1,7 +1,7 @@
-const { Logtail } = require('@logtail/node');
-const { LogtailTransport } = require('@logtail/winston');
-const { createLogger, format, transports } = require('winston');
-const config = require('config');
+import config from 'config';
+import { Logtail } from '@logtail/node';
+import { LogtailTransport } from '@logtail/winston';
+import { format, transports, createLogger } from 'winston';
 
 const { combine, timestamp, errors, prettyPrint, json, simple, colorize, align } = format;
 const consoleFormat = combine(
@@ -42,4 +42,4 @@ if (config.get('env') === 'development') {
 	);
 }
 
-module.exports = logger;
+export default logger;

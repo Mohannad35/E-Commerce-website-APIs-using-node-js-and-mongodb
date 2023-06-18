@@ -4,3 +4,5 @@ coverage/
 notes.*
 testing.log
 .vscode/
+logs/
+out/

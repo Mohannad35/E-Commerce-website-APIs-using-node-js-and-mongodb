@@ -1,7 +1,9 @@
 {
+	"client_url": "CLIENT_URL",
 	"project_issuer": "PROJECT_ISSUER",
 	"env": "NODE_ENV",
 	"port": "PORT",
+	"dsn": "DSN",
 	"mongodb_url": "MONGODB_URL",
 	"jwtPrivateKey": "ECOMMERCE_JWT_PRIVATE_KEY",
 	"logtailSourceToken": "LOGTAIL_SOURCE_TOKEN",

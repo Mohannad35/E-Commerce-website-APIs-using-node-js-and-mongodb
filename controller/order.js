@@ -1,9 +1,10 @@
-const _ = require('lodash');
-const Order = require('../model/order');
+import _ from 'lodash';
+import Order from './../model/order.js';
 
-class OrderController {
+export default class OrderController {
 	// get order for the logged in user
 	static async getOrders(req, res) {
+		orderDebugger(req.headers['user-agent']);
 		const { _id: owner } = req.user;
 		const { pageNumber, pageSize, sortBy } = req.query;
 		const orders = await Order.getOrders(owner, pageNumber, pageSize, sortBy);
@@ -11,47 +12,29 @@ class OrderController {
 		res.status(200).send({ pageLength: orders.length, remainingOrders, orders });
 	}
 
-	// make an order
+	// make an order (notify the vendors)
 	static async checkout(req, res) {
-		const { _id: owner, name } = req.user;
-		const { paymentMethod, contactPhone, address } = req.body;
+		const { _id: owner } = req.user;
+		const { paymentMethod, contactPhone, address, coupon } = req.body;
 		const { err, status, message, order } = await Order.checkout(
 			owner,
 			paymentMethod,
 			contactPhone,
-			address
+			address,
+			coupon
 		);
 		if (err) return res.status(status).send({ error: true, message });
 		await order.save();
-		res.status(201).send({ orderid: order._id, create: true });
+		res.status(201).send({ order, create: true });
 	}
 
-	// cancel an order
-	static async cancelOrder(req, res) {
+	// cancel an order (notify the vendors)
+	static async editOrderStatus(req, res) {
 		const { _id: owner } = req.user;
 		const { id } = req.params;
-		const { err, status, message, order } = await Order.cancelOrder(id, owner);
-		if (err) return res.status(status).send({ error: true, message });
-		res.status(200).send({ orderid: order._id, delete: true });
-	}
-
-	// shipping order
-	static async confirmOrder(req, res) {
-		const { id } = req.params;
-		const { err, status, message, order } = await Order.confirmOrder(id);
-		if (err) return res.status(status).send({ error: true, message });
-		await order.save();
-		res.send({ orderid: order._id, update: true, message: 'Order sent for shipping' });
-	}
-
-	// order shipped
-	static async orderShipped(req, res) {
-		const { id } = req.params;
-		const { err, status, message, order } = await Order.orderShipped(id);
-		if (err) return res.status(status).send({ error: true, message });
-		await order.save();
-		res.status(200).send({ orderid: order._id, update: true, message: 'Order shipped' });
+		const { status } = req.body;
+		const { err, resStatus, message, order } = await Order.editOrderStatus(id, owner, status);
+		if (err) return res.status(resStatus).send({ error: true, message });
+		res.status(200).send({ update: true, order });
 	}
 }
-
-module.exports = OrderController;

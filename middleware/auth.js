@@ -1,8 +1,9 @@
-const config = require('config');
-const jwt = require('jsonwebtoken');
-const logger = require('./logger');
+import _ from 'lodash';
+import config from 'config';
+import jwt from 'jsonwebtoken';
+import logger from './logger.js';
 
-module.exports = async (req, res, next) => {
+export default async (req, res, next) => {
 	try {
 		let token = req.header('Authorization');
 		if (!token)

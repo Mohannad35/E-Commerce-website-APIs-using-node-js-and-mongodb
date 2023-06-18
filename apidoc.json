@@ -1,0 +1,31 @@
+{
+	"name": "API Documentation",
+	"title": "API Documentation",
+	"description": "An e-commerce web application API using NodeJS, Express and MongoDB",
+	"order": [
+		"Signup",
+		"Login",
+		"RefreshJWT",
+		"GetAllUsers",
+		"GetStats",
+		"GetUserInformation",
+		"VerifyUser",
+		"ResendVerifyUser",
+		"ChangeAccountType",
+		"EditUserInformation",
+		"ChangePassword",
+		"ForgetPassword",
+		"ForgetPasswordRedirect",
+		"ResetPassword",
+		"VendorRequest",
+		"GetVendorRequests",
+		"DeleteVendorRequest",
+		"BanUser",
+		"DeleteUser"
+	],
+	"_comment": {
+		"template": {
+			"showRequiredLabels": true
+		}
+	}
+}

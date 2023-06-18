@@ -1,6 +1,14 @@
-const { unlink } = require('fs');
-const mongoose = require('mongoose');
-const logger = require('../middleware/logger.js');
+import { unlink } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import _ from 'lodash';
+import logger from '../middleware/logger.js';
+import mongoose from 'mongoose';
+import slug from 'mongoose-slug-updater';
+mongoose.plugin(slug);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const categorySchema = new mongoose.Schema(
 	{
@@ -18,57 +26,82 @@ const categorySchema = new mongoose.Schema(
 		timestamps: true
 	}
 );
+categorySchema.index({ slug: 1 }, { unique: true });
 
 categorySchema.statics.getCategories = async function (query) {
-	let { title, parentId, slug, skip, limit, pageNumber, pageSize, sort } = query;
-	if (pageNumber || pageSize) {
-		skip = undefined;
-		limit = undefined;
-	}
+	let { title, parentId, isParent, main, slug, pageNumber, pageSize, sort, catArr } = query;
+
 	if (pageNumber && !pageSize) pageSize = 20;
 	if (!pageNumber && pageSize) pageNumber = 1;
-	skip = (pageNumber - 1) * pageSize || skip || 0;
-	limit = pageSize || limit || 1000;
+	let skip = (pageNumber - 1) * pageSize || 0;
+	let limit = pageSize || 1000;
 	sort = sort || 'title';
-	let categories;
-	if (title) {
+	let categories,
+		total,
+		cats = {};
+	if (main) {
+		categories = await Category.find({ parent: null }, {}, { skip, limit, sort }).collation({
+			locale: 'en'
+		});
+		total = await Category.countDocuments({ parent: null });
+	} else if (catArr) {
+		categories = await Category.find({ parent: null }, 'title isParent parent');
+		for (let i in categories) {
+			const children = await Category.find({ 'parent.parentId': categories[i]._id }).select(
+				'title isParent'
+			);
+			let arr = [];
+			children.forEach(child => arr.push({ _id: child._id, title: child.title }));
+			_.set(cats, categories[i].title, arr);
+			arr = [];
+		}
+		categories = cats;
+		total = await Category.countDocuments();
+	} else if (title) {
 		title = new RegExp(title.replace('-', ' '), 'i');
 		categories = await Category.find({ title }, {}, { skip, limit, sort }).collation({
 			locale: 'en'
 		});
-	} else if (parentId)
+		total = await Category.countDocuments({ title });
+	} else if (parentId) {
 		categories = await Category.find(
 			{ 'parent.parentId': parentId },
 			{},
 			{ skip, limit, sort }
 		).collation({ locale: 'en' });
-	else if (slug) {
+		total = await Category.countDocuments({ 'parent.parentId': parentId });
+	} else if (isParent === 'true') {
+		categories = await Category.find({ isParent: true }, {}, { skip, limit, sort }).collation({
+			locale: 'en'
+		});
+		total = await Category.countDocuments({ isParent: true });
+	} else if (isParent === 'false') {
+		categories = await Category.find({ isParent: false }, {}, { skip, limit, sort }).collation({
+			locale: 'en'
+		});
+		total = await Category.countDocuments({ isParent: false });
+	} else if (slug) {
 		slug = new RegExp(slug, 'i');
 		categories = await Category.find({ slug }, {}, { skip, limit, sort }).collation({
 			locale: 'en'
 		});
-	} else
+		total = await Category.countDocuments({ slug });
+	} else {
 		categories = await Category.find({}, {}, { skip, limit, sort }).collation({ locale: 'en' });
-	const total = await Category.countDocuments();
-	return { pageNumber, pageSize, total, categories };
-};
-
-categorySchema.statics.getMainCategories = async function (query) {
-	let { skip, limit, pageNumber, pageSize, sort } = query;
-	if (pageNumber || pageSize) {
-		skip = undefined;
-		limit = undefined;
+		total = await Category.countDocuments();
 	}
-	if (pageNumber && !pageSize) pageSize = 20;
-	if (!pageNumber && pageSize) pageNumber = 1;
-	skip = (pageNumber - 1) * pageSize || skip || 0;
-	limit = pageSize || limit || 1000;
-	sort = sort || 'title';
-	let categories = await Category.find({ isParent: true }, {}, { skip, limit, sort }).collation({
-		locale: 'en'
-	});
-	const total = await Category.countDocuments({ isParent: true });
-	return { pageNumber, pageSize, total, categories };
+	const numberOfPages = Math.ceil(total / pageSize);
+	const remaining = total - skip - limit > 0 ? total - skip - limit : 0;
+	return {
+		total,
+		remaining,
+		paginationResult: {
+			currentPage: parseInt(pageNumber),
+			numberOfPages,
+			limit: parseInt(pageSize)
+		},
+		categories
+	};
 };
 
 categorySchema.statics.remainingCategories = async function (
@@ -93,11 +126,16 @@ categorySchema.statics.createCategory = async function (title, img, parentId = n
 			await parent.save();
 		}
 	}
-	const category = new Category({
-		title,
-		img: `http://localhost:5000/categories/${img.filename}`,
-		parent: parentId ? { parentId: parent._id, parentTitle: parent.title } : null
-	});
+	const category = img
+		? new Category({
+				title,
+				img: `http://localhost:5000/categories/${img.filename}`,
+				parent: parentId ? { parentId: parent._id, parentTitle: parent.title } : null
+		  })
+		: new Category({
+				title,
+				parent: parentId ? { parentId: parent._id, parentTitle: parent.title } : null
+		  });
 	return { category };
 };
 
@@ -121,16 +159,17 @@ categorySchema.statics.editCategory = async function (id, title = null, img = nu
 categorySchema.statics.deleteCategory = async function (id) {
 	const category = await Category.findById(id);
 	if (!category) return { err: true, status: 404, message: 'Category not found' };
-	await unlink(
-		`${__dirname.replace(/model/, '')}public/categories/${category.img.replace(
-			/.*categories\//,
-			''
-		)}`,
-		err => err && logger.error(err.message, err)
-	);
+	if (category.img)
+		await unlink(
+			`${__dirname.replace(/model/, '')}public/categories/${category.img.replace(
+				/.*categories\//,
+				''
+			)}`,
+			err => err && logger.error(err.message, err)
+		);
 	await Category.deleteOne({ _id: category._id });
 	return { category };
 };
 
 const Category = mongoose.model('Category', categorySchema, 'category');
-module.exports = Category;
+export default Category;

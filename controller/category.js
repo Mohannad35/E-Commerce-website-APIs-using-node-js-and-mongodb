@@ -1,21 +1,14 @@
-const _ = require('lodash');
-const Category = require('../model/category');
+import _ from 'lodash';
+import Category from '../model/category.js';
 
-class CategoryController {
+export default class CategoryController {
 	// get all items from database and return them as JSON objects
 	static async categories(req, res) {
-		const { main, ...query } = req.query;
-		const { pageNumber, pageSize, total, categories } =
-			main === 'true'
-				? await Category.getMainCategories(query)
-				: await Category.getCategories(query);
-		res.send({ length: categories.length, pageNumber, pageSize, total, categories });
-	}
-
-	static async subCategories(req, res) {
-		const { id: parentId } = req.params;
-		const { pageNumber, pageSize, total, categories } = await Category.getCategories({ parentId });
-		res.send({ length: categories.length, pageNumber, pageSize, total, categories });
+		categoryDebugger(req.headers['user-agent']);
+		const { pageNumber, pageSize, sortBy } = req.query;
+		const categories = await Category.getCategories(pageNumber, pageSize, sortBy);
+		const remainingCategories = await Category.remainingCategories(pageNumber, pageSize, 100);
+		res.send({ pageLength: categories.length, remainingCategories, categories });
 	}
 
 	// get item by id from database and return it as JSON object
@@ -58,5 +51,3 @@ class CategoryController {
 		res.send({ categoryid: category._id, delete: true });
 	}
 }
-
-module.exports = CategoryController;

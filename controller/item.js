@@ -1,12 +1,13 @@
-const _ = require('lodash');
-const Item = require('../model/item');
+import _ from 'lodash';
+import { Types } from 'mongoose';
+import Item from './../model/item.js';
 
-class ItemController {
+export default class ItemController {
 	// get all items from database and return them as JSON objects
 	static async items(req, res) {
 		const { query } = req;
-		const { total, remaining, paginationResult, items } = await Item.getItems(query);
-		res.send({ length: items.length, total, remaining, paginationResult, items });
+		const { pageNumber, pageSize, items } = await Item.getItems(query);
+		res.send({ pageNumber, pageSize, length: items.length, items });
 	}
 
 	// get item by id from database and return it as JSON object
@@ -52,5 +53,3 @@ class ItemController {
 		res.send({ itemid: item._id, delete: true });
 	}
 }
-
-module.exports = ItemController;

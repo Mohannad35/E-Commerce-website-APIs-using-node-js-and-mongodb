@@ -1,6 +1,6 @@
-const Cart = require('../model/cart');
+import Cart from '../model/cart.js';
 
-class CartController {
+export default class CartController {
 	// get all the items in a user cart from the Database and return them as JSON
 	static async getCartItems(req, res) {
 		const { full } = req.query;
@@ -44,6 +44,23 @@ class CartController {
 		await cart.save();
 		res.status(200).send({ cartid: cart._id, update: true });
 	}
-}
+	
+	static async deleteItemFromCart(req, res) {
+		const { _id: owner } = req.user;
+		const { id: itemId } = req.params;
+		const { err, status, message, cart } = await Cart.deleteItemFromCart(owner, itemId);
+		if (err) return res.status(status).send({ error: true, message });
+		await cart.save();
+		res.status(200).send({ cartid: cart._id, update: true });
+	}
 
-module.exports = CartController;
+	static async editItemInCart(req, res) {
+		const { _id: owner } = req.user;
+		const { id: itemId } = req.params;
+		const { quantity } = req.body;
+		const { err, status, message, cart } = await Cart.editItemInCart(owner, itemId, quantity);
+		if (err) return res.status(status).send({ error: true, message });
+		await cart.save();
+		res.status(200).send({ cartid: cart._id, update: true });
+	}
+}

@@ -1,20 +1,14 @@
-const config = require('config');
-const moment = require('moment');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
-const validator = require('validator');
-const Request = require('./request');
+import mongoose from 'mongoose';
+import validator from 'validator';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import moment from 'moment';
+import config from 'config';
+import Request from './request.js';
 
 const userSchema = new mongoose.Schema(
 	{
-		name: {
-			type: String,
-			required: true,
-			minlength: 3,
-			maxlength: 255,
-			match: /^[\p{L}].*$/u
-		},
+		name: { type: String, required: true, minlength: 3, maxlength: 255, match: /^[\p{L}].*$/u },
 		email: {
 			type: String,
 			unique: true,
@@ -28,10 +22,7 @@ const userSchema = new mongoose.Schema(
 				message: 'Invalid email address'
 			}
 		},
-		isVerified: {
-			type: Boolean,
-			default: false
-		},
+		isVerified: { type: Boolean, default: false },
 		status: {
 			type: String,
 			lowercase: true,
@@ -41,13 +32,10 @@ const userSchema = new mongoose.Schema(
 				message: '{VALUE} is not valid. Must be active, idle, offline, or banned'
 			}
 		},
+		code: { type: String },
 		token: { type: String },
 		expireAt: { type: Date },
-		password: {
-			type: String,
-			minlength: 8,
-			maxlength: 1024
-		},
+		password: { type: String, minlength: 8, maxlength: 1024 },
 		accountType: {
 			type: String,
 			lowercase: true,
@@ -57,27 +45,10 @@ const userSchema = new mongoose.Schema(
 				message: '{VALUE} is not valid. Must be admin, support, vendor, or client'
 			}
 		},
-		phoneNumber: {
-			type: String,
-			unique: true,
-			sparse: true,
-			index: true
-		},
-		country: {
-			type: String,
-			minlength: 3,
-			maxlength: 255
-		},
-		city: {
-			type: String,
-			minlength: 3,
-			maxlength: 255
-		},
-		address: {
-			type: String,
-			minlength: 3,
-			maxlength: 1024
-		},
+		phoneNumber: { type: String, unique: true, sparse: true, index: true },
+		country: { type: String, minlength: 3, maxlength: 255 },
+		city: { type: String, minlength: 3, maxlength: 255 },
+		address: { type: String, minlength: 3, maxlength: 1024 },
 		birthday: {
 			type: Date,
 			min: moment().subtract(120, 'years').format('YYYY-MM-DD'),
@@ -86,32 +57,13 @@ const userSchema = new mongoose.Schema(
 		gender: {
 			type: String,
 			lowercase: true,
-			enum: {
-				values: ['male', 'female'],
-				message: '{VALUE} is not a gender'
-			}
+			enum: { values: ['male', 'female'], message: '{VALUE} is not a gender' }
 		},
-		companyName: {
-			type: String,
-			minlength: 3,
-			maxlength: 255
-		},
-		businessAddress: {
-			type: String,
-			minlength: 3,
-			maxlength: 1024
-		},
-		websiteAddress: {
-			type: String,
-			minlength: 3,
-			maxlength: 1024
-		},
-		accountId: {
-			type: String
-		},
-		provider: {
-			type: String
-		}
+		companyName: { type: String, minlength: 3, maxlength: 255 },
+		businessAddress: { type: String, minlength: 3, maxlength: 1024 },
+		websiteAddress: { type: String, minlength: 3, maxlength: 1024 },
+		accountId: { type: String },
+		provider: { type: String }
 	},
 	{
 		timestamps: true
@@ -158,7 +110,7 @@ userSchema.statics.signup = async function (body) {
 
 // static methods to use on class itself
 userSchema.statics.loginUser = async function (email, password) {
-	const user = await User.findOne({ email }, 'name email password accountType tokens __v');
+	const user = await User.findOne({ email });
 	if (!user) return { err: true, status: 400, message: 'Incorrect email or password.' };
 	const isMatch = await bcrypt.compare(password, user.password);
 	if (!isMatch) return { err: true, status: 400, message: 'Incorrect email or password.' };
@@ -223,29 +175,26 @@ userSchema.statics.getUserById = async function (id) {
 };
 
 userSchema.statics.stats = async function (query) {
-	let { skip, limit, date, accountType, gender } = query;
+	let { date, accountType, gender } = query;
 	let count;
-	if (!skip) skip = 0;
-	if (!limit) limit = 1000;
 	if (date) date = date.split(',');
-	if (gender) count = await User.countDocuments({ gender }, { skip, limit });
-	else if (accountType) count = await User.countDocuments({ accountType }, { skip, limit });
-	else if (date.length === 1)
-		count = await User.countDocuments({ createdAt: { $gte: date[0] } }, { skip, limit });
-	else if (date.length === 2)
-		count = await User.countDocuments(
-			{ $and: [{ createdAt: { $gte: date[0] } }, { createdAt: { $lte: date[1] } }] },
-			{ skip, limit }
-		);
+	if (gender) count = await User.countDocuments({ gender });
+	else if (accountType) count = await User.countDocuments({ accountType });
+	else if (date && date.length === 1)
+		count = await User.countDocuments({ createdAt: { $gte: date[0] } });
+	else if (date && date.length === 2)
+		count = await User.countDocuments({
+			$and: [{ createdAt: { $gte: date[0] } }, { createdAt: { $lte: date[1] } }]
+		});
 	else count = await User.countDocuments();
 	return count;
 };
 
 userSchema.statics.vendorReq = async function (id, details) {
-	const request = Request.findById(id, '-password');
+	const request = await Request.findOne({ userId: id });
 	if (request) return { err: true, status: 400, message: 'Request already submitted' };
 	const result = await Request.create({
-		_id: id,
+		userId: id,
 		type: 'vendor',
 		details: details || 'Want to be a vendor'
 	});
@@ -253,25 +202,41 @@ userSchema.statics.vendorReq = async function (id, details) {
 };
 
 userSchema.statics.getVendorReq = async function () {
-	return await Request.find({}).collation({ locale: 'en' });
+	return await Request.find({}).populate('userId', '-password').collation({ locale: 'en' });
+};
+
+userSchema.statics.cancelVendorReq = async function (id) {
+	const request = await Request.findByIdAndDelete(id);
+	const user = await User.findOne({ _id: request.userId });
+	return { user, request };
 };
 
 userSchema.statics.changeAccountType = async function (userId, type) {
-	const user = await User.findById(userId, 'name accountType __v');
+	const user = await User.findById(userId, '-password');
 	if (!user) return null;
 	user.accountType = type;
+	const req = await Request.findOne({ userId });
+	if (req) await Request.deleteOne({ userId });
 	return user;
 };
 
 userSchema.statics.editInfo = async function (userId, body) {
 	const user = await User.findById(userId, '-password');
 	const updates = Object.keys(body);
+	if (updates.includes('email')) {
+		const u = await User.findOne({ email: body['email'] });
+		if (u) return { err: true, status: 400, message: 'Email already in use!' };
+	}
+	if (updates.includes('phoneNumber')) {
+		const u = await User.findOne({ phoneNumber: body.phoneNumber });
+		if (u) return { err: true, status: 400, message: 'Phone already in use!' };
+	}
 	updates.forEach(update => (user[update] = body[update]));
-	return user;
+	return { user };
 };
 
 userSchema.statics.changePassword = async function (userId, oldPassword, newPassword) {
-	const user = await User.findById(userId, 'password __v');
+	const user = await User.findById(userId);
 	const isMatch = await bcrypt.compare(oldPassword, user.password);
 	user.password = newPassword;
 	return { isMatch, user };
@@ -279,17 +244,17 @@ userSchema.statics.changePassword = async function (userId, oldPassword, newPass
 
 userSchema.statics.deleteUser = async function (userId) {
 	const user = await User.findById(userId, '-password');
-	if (!user) return { err: true, status: 400, message: 'User not found.' };
+	if (!user) return { err: true, status: 404, message: 'User not found.' };
 	await User.deleteOne({ _id: userId });
 	return { user };
 };
 
 userSchema.statics.banUser = async function (userId) {
 	const user = await User.findById(userId, '-password');
-	if (!user) return { err: true, status: 400, message: 'User not found.' };
+	if (!user) return { err: true, status: 404, message: 'User not found.' };
 	user.status = 'banned';
 	return { user };
 };
 
 const User = mongoose.model('User', userSchema, 'user');
-module.exports = User;
+export default User;

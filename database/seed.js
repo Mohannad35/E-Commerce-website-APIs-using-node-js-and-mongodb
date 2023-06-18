@@ -9,9 +9,9 @@ mongoose.plugin(slug);
 async function run() {
 	const db = await init();
 
-	await seed_user();
+	// await seed_user();
 	await seed_category();
-	await seed_item();
+	// await seed_item();
 
 	await close(db);
 }
