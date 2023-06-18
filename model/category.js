@@ -29,16 +29,12 @@ const categorySchema = new mongoose.Schema(
 categorySchema.index({ slug: 1 }, { unique: true });
 
 categorySchema.statics.getCategories = async function (query) {
-	let { title, parentId, isParent, main, slug, skip, limit, pageNumber, pageSize, sort, catArr } =
-		query;
-	if (pageNumber || pageSize) {
-		skip = undefined;
-		limit = undefined;
-	}
+	let { title, parentId, isParent, main, slug, pageNumber, pageSize, sort, catArr } = query;
+
 	if (pageNumber && !pageSize) pageSize = 20;
 	if (!pageNumber && pageSize) pageNumber = 1;
-	skip = (pageNumber - 1) * pageSize || skip || 0;
-	limit = pageSize || limit || 1000;
+	let skip = (pageNumber - 1) * pageSize || 0;
+	let limit = pageSize || 1000;
 	sort = sort || 'title';
 	let categories,
 		total,
@@ -163,13 +159,14 @@ categorySchema.statics.editCategory = async function (id, title = null, img = nu
 categorySchema.statics.deleteCategory = async function (id) {
 	const category = await Category.findById(id);
 	if (!category) return { err: true, status: 404, message: 'Category not found' };
-	await unlink(
-		`${__dirname.replace(/model/, '')}public/categories/${category.img.replace(
-			/.*categories\//,
-			''
-		)}`,
-		err => err && logger.error(err.message, err)
-	);
+	if (category.img)
+		await unlink(
+			`${__dirname.replace(/model/, '')}public/categories/${category.img.replace(
+				/.*categories\//,
+				''
+			)}`,
+			err => err && logger.error(err.message, err)
+		);
 	await Category.deleteOne({ _id: category._id });
 	return { category };
 };

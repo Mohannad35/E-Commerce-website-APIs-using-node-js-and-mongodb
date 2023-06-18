@@ -5,3 +5,4 @@ notes.*
 testing.log
 .vscode/
 logs/
+out/

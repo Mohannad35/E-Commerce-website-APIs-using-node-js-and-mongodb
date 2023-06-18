@@ -23,7 +23,7 @@ export default class CategoryValidator {
 				.message('sort should only contain letters and _-,.'),
 			main: Joi.string()
 				.pattern(/^[A-Za-z_\-,.]+$/)
-				.message('sort should only contain letters and _-,.'),
+				.message('main should only contain letters and _-,.'),
 			title: joiTitle,
 			parentId: joiId,
 			isParent: Joi.string().allow('true', 'false'),

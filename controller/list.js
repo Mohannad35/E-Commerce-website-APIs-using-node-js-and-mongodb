@@ -70,7 +70,7 @@ export default class ListController {
 		const { err, status, message, list } = await List.removeFromList(listId, userId, itemId);
 		if (err) return res.status(status).send({ error: true, message });
 		await list.save();
-		res.status(200).send({ listId: list._id, add: true, list });
+		res.status(200).send({ listId: list._id, delete: true, list });
 	}
 
 	static async deleteList(req, res) {

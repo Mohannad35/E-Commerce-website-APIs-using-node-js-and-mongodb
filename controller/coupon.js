@@ -13,7 +13,7 @@ export default class CouponController {
 	// get item by id from database and return it as JSON object
 	static async coupon(req, res) {
 		const coupon = await Coupon.getCouponById(req.params.id);
-		if (!coupon) return res.status(404).send({ message: 'Category not found' });
+		if (!coupon) return res.status(404).send({ message: 'Coupon not found' });
 		res.status(200).send({ coupon });
 	}
 

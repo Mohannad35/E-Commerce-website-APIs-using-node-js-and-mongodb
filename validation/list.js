@@ -12,7 +12,7 @@ const joiId = Joi.objectId();
 export default class ListValidator {
 	static list(category) {
 		const Schema = Joi.object({
-			name: joiName.required(),
+			name: joiName,
 			listId: joiId,
 			populate: Joi.string().allow('true', 'false', ''),
 			page: Joi.string()
@@ -23,6 +23,13 @@ export default class ListValidator {
 				.allow('')
 				.pattern(/^[0-9]+$/)
 				.message('pageSize should be a positive integer')
+		});
+		return Schema.validate(category, { convert: false, abortEarly: false });
+	}
+
+	static addList(category) {
+		const Schema = Joi.object({
+			name: joiName.required()
 		});
 		return Schema.validate(category, { convert: false, abortEarly: false });
 	}

@@ -16,7 +16,7 @@ const couponSchema = new mongoose.Schema(
 			set: v => (Math.round(v * 100) / 100).toFixed(2)
 		},
 		validFrom: { type: Date, default: new Date() },
-		expireAt: { type: Date, default: moment().add(30, 'days').format('YYYY-MM-DD') },
+		expireAt: { type: Date, default: moment().add(10, 'days').format('YYYY-MM-DD') },
 		vendor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 	},
 	{
@@ -25,18 +25,13 @@ const couponSchema = new mongoose.Schema(
 );
 
 couponSchema.statics.getCoupons = async function (user, query) {
-	let { code, skip, limit, sort, pageNumber, pageSize } = query;
+	let { code, sort, pageNumber, pageSize } = query;
 
-	if (pageNumber || pageSize) {
-		limit = undefined;
-		skip = undefined;
-	}
 	if (pageNumber && !pageSize) pageSize = 20;
 	if (!pageNumber && pageSize) pageNumber = 1;
-	skip = (pageNumber - 1) * pageSize || skip || 0;
-	limit = pageSize || limit || 1000;
-	sort = sort || '';
-	if (sort) sort = sort.split(',').join(' ');
+	let skip = (pageNumber - 1) * pageSize || 0;
+	let limit = pageSize || 1000;
+	sort = sort ? sort.split(',').join(' ') : '_id';
 	code = code ? new RegExp(code, 'i') : /.*/;
 
 	let coupons = [],

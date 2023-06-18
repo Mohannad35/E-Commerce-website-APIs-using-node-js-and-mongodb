@@ -14,7 +14,7 @@ const complexityOptions = {
 	requirementCount: 3
 };
 const joiName = Joi.string()
-	.min(2)
+	.min(3)
 	.max(255)
 	.pattern(/^[\p{L}].*$/u)
 	.message('name should start with a letter');
@@ -59,12 +59,8 @@ export default class UserValidator {
 			sort: Joi.string()
 				.pattern(/^[A-Za-z_\-,.]+$/)
 				.message('sort should only contain letters and _-,.'),
-			accountType: Joi.string()
-				.pattern(/^[A-Za-z]+$/)
-				.message('accountType should only contain letters'),
-			gender: Joi.string()
-				.pattern(/^[A-Za-z]+$/)
-				.message('gender should only contain letters'),
+			accountType: Joi.string().allow('admin', 'vendor', 'client'),
+			gender: Joi.string().allow('male', 'female'),
 			name: Joi.string(),
 			email: Joi.string()
 		});
@@ -73,21 +69,11 @@ export default class UserValidator {
 
 	static getStats(opts) {
 		const Schema = Joi.object({
-			skip: Joi.string()
-				.pattern(/^[0-9]+$/)
-				.message('skip should be a positive integer'),
-			limit: Joi.string()
-				.pattern(/^[0-9]+$/)
-				.message('limit should be a positive integer'),
 			date: Joi.string()
 				.pattern(/^[0-9_,.\-]+$/)
 				.message('date should be YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD'),
-			accountType: Joi.string()
-				.pattern(/^[A-Za-z]+$/)
-				.message('accountType should only contain letters'),
-			gender: Joi.string()
-				.pattern(/^[A-Za-z]+$/)
-				.message('gender should only contain letters')
+			accountType: Joi.string().allow('admin', 'vendor', 'client'),
+			gender: Joi.string().allow('male', 'female')
 		});
 		return Schema.validate(opts, { convert: false, abortEarly: false });
 	}

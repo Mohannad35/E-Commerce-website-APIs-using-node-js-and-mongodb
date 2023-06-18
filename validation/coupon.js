@@ -15,11 +15,7 @@ export default class CouponValidator {
 				.allow('')
 				.pattern(/^[A-Za-z_\-,.]+$/)
 				.message('sort should only contain letters and _-,.'),
-			code: Joi.string().allow(''),
-			all: Joi.string().allow(''),
-			working: Joi.string().allow(''),
-			expireAt: Joi.string().allow(''),
-			expireDay: Joi.string().allow('')
+			code: Joi.string().allow('')
 		});
 		return Schema.validate(coupon, { convert: false, abortEarly: false });
 	}
@@ -47,7 +43,7 @@ export default class CouponValidator {
 			discount: Joi.number().min(0).max(99).allow(''),
 			expireAt: Joi.string().allow(''),
 			validFrom: Joi.string().allow('')
-		});
+		}).or('code', 'discount', 'expireAt', 'validFrom');
 		return Schema.validate(coupon, { convert: false, abortEarly: false });
 	}
 }

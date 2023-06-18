@@ -298,24 +298,6 @@ orderSchema.statics.editOrderStatus = async function (id, owner, status) {
 	return { order };
 };
 
-orderSchema.statics.confirmOrder = async function (id) {
-	const order = await Order.findById(id, 'status');
-	if (!order) return { err: true, status: 404, message: 'No order found' };
-	if (order.status !== 'pending')
-		return { err: true, status: 400, message: `Denied. Order in ${order.status} state.` };
-	order.status = 'on way';
-	return { order };
-};
-
-orderSchema.statics.orderShipped = async function (id, owner) {
-	const order = await Order.findById(id, 'status');
-	if (!order) return { err: true, status: 404, message: 'No order found' };
-	if (order.status !== 'on way')
-		return { err: true, status: 400, message: `Denied. Order in ${order.status} state.` };
-	order.status = 'received';
-	return { order };
-};
-
 const Order = mongoose.model('Order', orderSchema, 'order');
 export default Order;
 

@@ -175,20 +175,17 @@ userSchema.statics.getUserById = async function (id) {
 };
 
 userSchema.statics.stats = async function (query) {
-	let { skip, limit, date, accountType, gender } = query;
+	let { date, accountType, gender } = query;
 	let count;
-	if (!skip) skip = 0;
-	if (!limit) limit = 1000;
 	if (date) date = date.split(',');
-	if (gender) count = await User.countDocuments({ gender }, { skip, limit });
-	else if (accountType) count = await User.countDocuments({ accountType }, { skip, limit });
+	if (gender) count = await User.countDocuments({ gender });
+	else if (accountType) count = await User.countDocuments({ accountType });
 	else if (date && date.length === 1)
-		count = await User.countDocuments({ createdAt: { $gte: date[0] } }, { skip, limit });
+		count = await User.countDocuments({ createdAt: { $gte: date[0] } });
 	else if (date && date.length === 2)
-		count = await User.countDocuments(
-			{ $and: [{ createdAt: { $gte: date[0] } }, { createdAt: { $lte: date[1] } }] },
-			{ skip, limit }
-		);
+		count = await User.countDocuments({
+			$and: [{ createdAt: { $gte: date[0] } }, { createdAt: { $lte: date[1] } }]
+		});
 	else count = await User.countDocuments();
 	return count;
 };
@@ -247,14 +244,14 @@ userSchema.statics.changePassword = async function (userId, oldPassword, newPass
 
 userSchema.statics.deleteUser = async function (userId) {
 	const user = await User.findById(userId, '-password');
-	if (!user) return { err: true, status: 400, message: 'User not found.' };
+	if (!user) return { err: true, status: 404, message: 'User not found.' };
 	await User.deleteOne({ _id: userId });
 	return { user };
 };
 
 userSchema.statics.banUser = async function (userId) {
 	const user = await User.findById(userId, '-password');
-	if (!user) return { err: true, status: 400, message: 'User not found.' };
+	if (!user) return { err: true, status: 404, message: 'User not found.' };
 	user.status = 'banned';
 	return { user };
 };

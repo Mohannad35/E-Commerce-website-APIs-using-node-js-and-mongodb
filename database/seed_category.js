@@ -60,28 +60,18 @@ const Categories = [
 	{
 		parent: 'Furniture',
 		children: [
-			{
-				parent: 'Home',
-				children: [
-					'Home Décor',
-					'Bedding & Linen',
-					'Bath Accessories',
-					'Storage & Organization',
-					'Household Supplies',
-					'Garden & Outdoors'
-				]
-			},
-			{
-				parent: 'Office',
-				children: [
-					'Tools & Home Improvement',
-					'All Tools & Home Improvement',
-					'Power Tools',
-					'Hand Tools',
-					'Lighting',
-					'Tools Accessories'
-				]
-			}
+			'Home Décor',
+			'Bedding & Linen',
+			'Bath Accessories',
+			'Storage & Organization',
+			'Household Supplies',
+			'Garden & Outdoors',
+			'Tools & Home Improvement',
+			'All Tools & Home Improvement',
+			'Power Tools',
+			'Hand Tools',
+			'Lighting',
+			'Tools Accessories'
 		]
 	},
 	{
@@ -91,26 +81,23 @@ const Categories = [
 	{
 		parent: 'Fashion',
 		children: [
-			{
-				parent: `Man's Fashion`,
-				children: ['Clothing', 'Watches', 'Sportswear', 'Accessories']
-			},
-			{
-				parent: `Woman's Fashion`,
-				children: [
-					'Clothing',
-					'Jewelry',
-					'Sportswear',
-					'Lingerie & Sleepwear',
-					'Wearables',
-					'Perfumes'
-				]
-			},
+			`Man's Sportswear`,
+			`Man's Clothing`,
+			`Woman's Clothing`,
+			`Woman's Sportswear`,
+			`Lingerie & Sleepwear`,
+			`Wearables`,
+			`Perfume`,
+			`Jewelry`,
+			`Watches`,
+			`Accessories`,
 			`Kids' Fashion`,
-			{
-				parent: `Bags, Shoes & More`,
-				children: ['Shoes', 'Bags & Wallets', 'Eyewear', 'Sports Shoes', 'Travel Bags & Backpacks']
-			}
+			'Shoes',
+			'Bags & Wallets',
+			'Eyewear',
+			'Sports Shoes',
+			'Travel Bags & Backpacks',
+			`Bags, Shoes & More`
 		]
 	},
 	{

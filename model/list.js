@@ -96,7 +96,8 @@ listSchema.statics.createList = async function (name, userid) {
 listSchema.statics.editList = async function (id, name, userid) {
 	let list = await List.findById(id);
 	if (!list) return { err: true, status: 404, message: 'List not found' };
-	if (list.userid !== userid) return { err: true, status: 403, message: 'Access denied.' };
+	if (list.userid.toString() !== userid)
+		return { err: true, status: 403, message: 'Access denied.' };
 	list.name = name;
 	return { list };
 };
@@ -108,6 +109,7 @@ listSchema.statics.addToList = async function (id, userid, itemid) {
 	if (list.userid.toString() !== userid)
 		return { err: true, status: 403, message: 'Access denied.' };
 	const item = await Item.findById(itemid, 'name');
+	if (!item) return { err: true, status: 404, message: 'Item not found.' };
 	if (list.items.includes(itemid))
 		return { err: true, status: 400, message: 'Item already added.' };
 	list.items = list.items.concat(item._id);
@@ -130,7 +132,7 @@ listSchema.statics.removeFromList = async function (id, userid, itemid) {
 listSchema.statics.deleteList = async function (id, userid) {
 	const list = await List.findById(id);
 	if (!list) return { err: true, status: 404, message: 'List not found' };
-	if (list.userid !== userid) return { err: true, status: 403, message: 'Access denied.' };
+	if (list.userid.toString() !== userid) return { err: true, status: 403, message: 'Access denied.' };
 	await List.deleteOne({ _id: list._id });
 	return { list };
 };

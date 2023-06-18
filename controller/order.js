@@ -35,15 +35,6 @@ export default class OrderController {
 	}
 
 	// cancel an order (notify the vendors)
-	static async cancelOrder(req, res) {
-		const { _id: owner } = req.user;
-		const { id } = req.params;
-		const { err, status, message, order } = await Order.cancelOrder(id, owner);
-		if (err) return res.status(status).send({ error: true, message });
-		res.status(200).send({ delete: true, order });
-	}
-
-	// cancel an order (notify the vendors)
 	static async editOrderStatus(req, res) {
 		const { _id: owner } = req.user;
 		const { id } = req.params;
@@ -51,23 +42,5 @@ export default class OrderController {
 		const { err, resStatus, message, order } = await Order.editOrderStatus(id, owner, status);
 		if (err) return res.status(resStatus).send({ error: true, message });
 		res.status(200).send({ update: true, order });
-	}
-
-	// shipping order (API for vendors to confirm shipping)
-	static async confirmOrder(req, res) {
-		const { id } = req.params;
-		const { err, status, message, order } = await Order.confirmOrder(id);
-		if (err) return res.status(status).send({ error: true, message });
-		await order.save();
-		res.send({ order, update: true, message: 'Order sent for shipping' });
-	}
-
-	// order shipped (API for vendors or delivery to confirm arrival of order)
-	static async orderShipped(req, res) {
-		const { id } = req.params;
-		const { err, status, message, order } = await Order.orderShipped(id);
-		if (err) return res.status(status).send({ error: true, message });
-		await order.save();
-		res.status(200).send({ order, update: true, message: 'Order shipped' });
 	}
 }
