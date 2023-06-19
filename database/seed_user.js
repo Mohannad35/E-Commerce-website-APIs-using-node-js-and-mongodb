@@ -2,8 +2,8 @@ import moment from 'moment';
 import User from './../model/user.js';
 
 let admin = {
-	name: `Ahmed`,
-	email: `ahmed@gmail.com`,
+	name: `Admin`,
+	email: `admin@gmail.com`,
 	password: '123456aB',
 	birthday: moment().subtract(myRandomInt(12, 80), 'years').format('YYYY-MM-DD'),
 	gender: 'male',
@@ -30,33 +30,33 @@ function randomId(length = 8) {
 	return Math.random().toString().substring(2, length + 2);
 }
 
-function generateUser(num, type = 'client') {
+function generateUser(type = 'client') {
 	if (type === 'client')
 		return {
-			name: `User ${num < 10 ? `0${num}` : num}`,
-			email: `user${num < 10 ? `0${num}` : num}@gmail.com`,
+			name: `Client`,
+			email: `client@gmail.com`,
 			password: '123456aB',
 			birthday: moment().subtract(myRandomInt(12, 50), 'years').format('YYYY-MM-DD'),
-			gender: num % 2 ? 'female' : 'male',
+			gender: 'male',
 			accountType: type,
 			isVerified: true,
 			phoneNumber: `01${myRandomInt(0, 3)}${randomId(8)}`,
-			address: `address ${num < 10 ? `0${num}` : num}`
+			address: `client address`
 		};
 	if (type === 'vendor') {
 		return {
-			name: `User ${num < 10 ? `0${num}` : num}`,
-			email: `user${num < 10 ? `0${num}` : num}@gmail.com`,
+			name: `Vendor`,
+			email: `vendor@gmail.com`,
 			password: '123456aB',
 			birthday: moment().subtract(myRandomInt(12, 50), 'years').format('YYYY-MM-DD'),
-			gender: num % 2 ? 'female' : 'male',
+			gender: 'male',
 			accountType: type,
 			isVerified: true,
 			phoneNumber: `01${myRandomInt(3)}${randomId(8)}`,
-			address: `address ${num < 10 ? `0${num}` : num}`,
-			companyName: `company ${num < 10 ? `0${num}` : num}`,
-			businessAddress: `business address ${num < 10 ? `0${num}` : num}`,
-			websiteAddress: `example${num < 10 ? `0${num}` : num}.com`
+			address: `vendor address`,
+			companyName: `vendor company name`,
+			businessAddress: `vendor business address`,
+			websiteAddress: `example.com`
 		};
 	}
 }
@@ -66,8 +66,8 @@ export default async function () {
 	console.log(await User.deleteMany({}));
 	let user = new User(admin);
 	await user.save();
-	for (let i = 1; i <= 10; i++) {
-		user = new User(generateUser(i, i % 4 ? 'client' : 'vendor'));
-		await user.save();
-	}
+	user = new User(generateUser('client'));
+	await user.save();
+	user = new User(generateUser('vendor'));
+	await user.save();
 }

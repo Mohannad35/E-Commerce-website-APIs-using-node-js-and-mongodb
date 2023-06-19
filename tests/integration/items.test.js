@@ -7,6 +7,9 @@ import Category from '../../model/category.js';
 import server from '../../index.js';
 
 describe('/item', () => {
+	afterAll(() => {
+		server.close();
+	});
 	let name, email, password, accountType, phoneNumber;
 	let itemName, description, title, price, quantity;
 	async function getCategory() {
@@ -77,14 +80,14 @@ describe('/item', () => {
 				_.pick(items[0], ['name', 'description', 'price', 'quantity'])
 			);
 			expect(body.items[0]).toHaveProperty('_id', items[0]._id.toString());
-			expect(body.items[0].owner).toHaveProperty('_id', vendor._id.toString());
-			expect(body.items[0].category).toHaveProperty('_id', category._id.toString());
+			expect(body.items[0]).toHaveProperty('owner', vendor._id.toString());
+			expect(body.items[0]).toHaveProperty('category', category._id.toString());
 			expect(body.items[1]).toMatchObject(
 				_.pick(items[1], ['name', 'description', 'price', 'quantity'])
 			);
 			expect(body.items[1]).toHaveProperty('_id', items[1]._id.toString());
-			expect(body.items[1].owner).toHaveProperty('_id', vendor._id.toString());
-			expect(body.items[1].category).toHaveProperty('_id', category._id.toString());
+			expect(body.items[1]).toHaveProperty('owner', vendor._id.toString());
+			expect(body.items[1]).toHaveProperty('category', category._id.toString());
 		});
 	});
 
@@ -106,8 +109,8 @@ describe('/item', () => {
 			expect(status).toBe(200);
 			expect(body.item).toMatchObject(_.pick(item, ['name', 'description', 'price', 'quantity']));
 			expect(body.item).toHaveProperty('_id', itemId);
-			expect(body.item.owner).toHaveProperty('_id', vendor._id.toString());
-			expect(body.item.category).toHaveProperty('_id', category._id.toString());
+			expect(body.item).toHaveProperty('owner', vendor._id.toString());
+			expect(body.item).toHaveProperty('category', category._id.toString());
 		});
 		it('should return 400 error if item id is invalid', async () => {
 			itemId = '1';
@@ -124,11 +127,20 @@ describe('/item', () => {
 	});
 
 	describe('POST /', () => {
-		async function exec() {
+		async function exec(name, description, categoryId, price, quantity) {
+			name = name || 'new item';
+			description = description || 'description';
+			categoryId = categoryId || category._id.toString();
+			price = price || '100';
+			quantity = quantity || '10';
 			return await request(server)
 				.post('/api/item')
 				.set('Authorization', 'Bearer ' + token)
-				.send(newItem);
+				.field('name', name)
+				.field('description', description)
+				.field('category', categoryId)
+				.field('price', price)
+				.field('quantity', quantity);
 		}
 		let vendor, category, token, newItem;
 		beforeEach(async () => {
@@ -139,97 +151,92 @@ describe('/item', () => {
 			newItem = {
 				name: 'new item',
 				description: 'description',
-				categoryId: category._id,
+				category: category._id,
 				price: 100,
 				quantity: 10
 			};
 		});
 
 		it('should add an item to db if valid input is passed', async () => {
-			newItem.name = 'item name';
 			await exec();
 			const itemInDB = await Item.findOne({ name: newItem.name });
-			_.unset(newItem, 'categoryId');
-			_.set(newItem, 'category', _.pick(category, ['_id', 'title']));
 			expect(itemInDB).toMatchObject(newItem);
 		});
 		it('should return 201 with added item if valid input is provided by a vendor', async () => {
 			const res = await exec();
-			_.unset(newItem, 'categoryId');
-			_.set(newItem, 'category', category.title);
 			expect(res.status).toBe(201);
 			expect(res.body).toHaveProperty('create', true);
 			expect(res.body).toHaveProperty('itemid');
-			expect(res.body.item).toMatchObject(newItem);
+			expect(res.body.item).toMatchObject(_.pick(newItem, 'name description price quantity'));
+			expect(res.body.item).toHaveProperty('category', category._id.toString());
 		});
 		it('should return 400 error if name is too short', async () => {
-			newItem.name = '1';
-			const res = await exec();
+			const res = await exec('1');
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*name.*/i));
 		});
 		it('should return 400 error if name is too long', async () => {
-			newItem.name = new Array(257).join('a');
-			const res = await exec();
+			const res = await exec(new Array(257).join('a'));
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*name.*/i));
 		});
 		it(`should return 400 error if name doesn't start with a letter`, async () => {
-			newItem.name = '#item';
-			const res = await exec();
+			const res = await exec('#item');
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*name.*/i));
 		});
 		it('should return 400 error if description is too short', async () => {
-			newItem.description = '1';
-			const res = await exec();
+			const res = await exec(undefined, '1');
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*description.*/i));
 		});
 		it('should return 400 error if description is too long', async () => {
-			newItem.description = new Array(1026).join('a');
-			const res = await exec();
+			const res = await exec(null, new Array(1026).join('a'));
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*description.*/i));
 		});
-		it('should return 400 error if categoryId is not a valid mongodb id', async () => {
-			newItem.categoryId = '1';
-			const res = await exec();
+		it('should return 400 error if category id is not a valid mongodb id', async () => {
+			const res = await exec(null, null, '1');
 			expect(res.status).toBe(400);
-			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*categoryId.*/i));
+			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*category.*/i));
 		});
-		it(`should return 404 error if categoryId doesn't belong to an existing category`, async () => {
-			newItem.categoryId = new mongoose.Types.ObjectId().toString();
-			const res = await exec();
+		it(`should return 404 error if category id doesn't belong to an existing category`, async () => {
+			const res = await exec(null, null, new mongoose.Types.ObjectId().toString());
 			expect(res.status).toBe(404);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*not.*found.*/i));
 		});
 		it('should return 400 error if price is negative number', async () => {
-			newItem.price = -1;
-			const res = await exec();
+			const res = await exec(null, null, null, -1);
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*price.*/i));
 		});
 		it('should return 400 error if quantity is negative number', async () => {
-			newItem.quantity = -1;
-			const res = await exec();
+			const res = await exec(null, null, null, null, -1);
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*quantity.*/i));
 		});
 		it('should return 400 error if quantity is float', async () => {
-			newItem.quantity = 1.1;
-			const res = await exec();
+			const res = await exec(null, null, null, null, 1.1);
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*quantity.*/i));
 		});
 	});
 
 	describe('PATCH /:id', () => {
-		async function exec() {
+		async function exec(name, description, categoryId, price, quantity) {
+			name = name || 'new name';
+			description = description || 'new description';
+			categoryId = categoryId || category._id.toString();
+			price = price || '20';
+			quantity = quantity || '5';
 			return await request(server)
 				.patch('/api/item/' + itemId)
 				.set('Authorization', 'Bearer ' + token)
-				.send(updates);
+				.field('name', name)
+				.field('description', description)
+				.field('category', categoryId)
+				.field('price', price)
+				.field('quantity', quantity);
 		}
 		let vendor, category, token, item, updates, itemId;
 		beforeEach(async () => {
@@ -242,7 +249,7 @@ describe('/item', () => {
 			updates = {
 				name: 'new name',
 				description: 'new description',
-				categoryId: category._id,
+				category: category._id.toString(),
 				price: 20,
 				quantity: 5
 			};
@@ -250,10 +257,10 @@ describe('/item', () => {
 
 		it('should update in db if valid updates is provided by a vendor', async () => {
 			await exec();
-			_.unset(updates, 'categoryId');
-			_.set(updates, 'category', { _id: category._id, title: category.title });
-			const itemInDB = await Item.findOne({ name: updates.name, category: updates.category });
-			expect(itemInDB).toMatchObject(updates);
+			const itemInDB = await Item.findOne({ name: updates.name });
+			expect(_.pick(itemInDB, ['name', 'description', 'price', 'quantity'])).toMatchObject(
+				_.pick(updates, ['name', 'description', 'price', 'quantity'])
+			);
 		});
 		it('should return 200 if valid updates is provided by a vendor', async () => {
 			const res = await exec();
@@ -262,56 +269,47 @@ describe('/item', () => {
 			expect(res.body).toHaveProperty('itemid');
 		});
 		it('should return 400 error if name is too short', async () => {
-			updates.name = 'a';
-			const res = await exec();
+			const res = await exec('a');
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*name.*/i));
 		});
 		it('should return 400 error if name is too long', async () => {
-			updates.name = new Array(257).join('a');
-			const res = await exec();
+			const res = await exec(new Array(257).join('a'));
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*name.*/i));
 		});
 		it('should return 400 error if description is too short', async () => {
-			updates.description = 'a';
-			const res = await exec();
+			const res = await exec(null, 'a');
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*description.*/i));
 		});
 		it('should return 400 error if description is too long', async () => {
-			updates.description = new Array(1026).join('a');
-			const res = await exec();
+			const res = await exec(null, new Array(1026).join('a'));
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*description.*/i));
 		});
 		it('should return 400 error if categoryId is not a valid mongodb id', async () => {
-			updates.categoryId = '1';
-			const res = await exec();
+			const res = await exec(null, null, '1');
 			expect(res.status).toBe(400);
-			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*categoryId.*/i));
+			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*category.*/i));
 		});
 		it(`should return 404 error if categoryId doesn't belong to an existing category`, async () => {
-			updates.categoryId = new mongoose.Types.ObjectId().toString();
-			const res = await exec();
+			const res = await exec(null, null, new mongoose.Types.ObjectId().toString());
 			expect(res.status).toBe(404);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*not.*found.*/i));
 		});
 		it('should return 400 error if price is negative number', async () => {
-			updates.price = -1;
-			const res = await exec();
+			const res = await exec(null, null, null, -1);
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*price.*/i));
 		});
 		it('should return 400 error if quantity is negative number', async () => {
-			updates.quantity = -1;
-			const res = await exec();
+			const res = await exec(null, null, null, null, -1);
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*quantity.*/i));
 		});
 		it('should return 400 error if quantity is float', async () => {
-			updates.quantity = 1.1;
-			const res = await exec();
+			const res = await exec(null, null, null, null, 1.1);
 			expect(res.status).toBe(400);
 			expect(res.body).toHaveProperty('message', expect.stringMatching(/.*quantity.*/i));
 		});

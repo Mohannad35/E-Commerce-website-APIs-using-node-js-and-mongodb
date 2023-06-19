@@ -3,9 +3,13 @@ import request from 'supertest';
 import Item from '../../model/item.js';
 import User from '../../model/user.js';
 import Category from '../../model/category.js';
+import server from '../../index.js';
 
 describe('auth middleware', () => {
-	let server, user, token;
+	afterAll(() => {
+		server.close();
+	});
+	let user, token;
 	async function getUser() {
 		return await User.create({
 			name: 'user',
@@ -25,17 +29,15 @@ describe('auth middleware', () => {
 
 	async function exec() {
 		return await request(server)
-			.post('/api/user/logout')
+			.get('/api/user/me')
 			.set('Authorization', token === '' ? '' : 'Bearer ' + token);
 	}
 
 	beforeEach(async () => {
-		server = require('../../index');
 		user = await getUser();
 		token = await getToken(user.email, '12345678');
 	});
 	afterEach(async () => {
-		await server.close();
 		await User.deleteMany({});
 	});
 
@@ -64,7 +66,7 @@ describe('auth middleware', () => {
 });
 
 describe('admin middleware', () => {
-	let server, user, admin, token;
+	let user, admin, token;
 	async function getUser(email = 'user@example.com', type = 'client') {
 		return await User.create({
 			name: 'user',
@@ -87,13 +89,11 @@ describe('admin middleware', () => {
 	}
 
 	beforeEach(async () => {
-		server = require('../../index');
 		admin = await getUser('admin@example.com', 'admin');
 		user = await getUser('user@example.com');
 		token = await getToken(admin.email, '12345678');
 	});
 	afterEach(async () => {
-		await server.close();
 		await User.deleteMany({});
 	});
 
@@ -110,7 +110,7 @@ describe('admin middleware', () => {
 });
 
 describe('vendor middleware', () => {
-	let server, user, vendor, category, title, token, newItem;
+	let user, vendor, category, title, token, newItem;
 	async function getUser(email = 'user@example.com', type = 'client') {
 		return await User.create({
 			name: 'user',
@@ -138,7 +138,6 @@ describe('vendor middleware', () => {
 	}
 
 	beforeEach(async () => {
-		server = require('../../index');
 		vendor = await getUser('vendor@example.com', 'vendor');
 		user = await getUser('user@example.com');
 		token = await getToken(vendor.email, '12345678');
@@ -147,13 +146,12 @@ describe('vendor middleware', () => {
 		newItem = {
 			name: 'new item',
 			description: 'description',
-			categoryId: category._id,
-			price: 100,
-			quantity: 10
+			category: category._id,
+			price: '100',
+			quantity: '10'
 		};
 	});
 	afterEach(async () => {
-		await server.close();
 		await User.deleteMany({});
 		await Category.deleteMany({});
 		await Item.deleteMany({});

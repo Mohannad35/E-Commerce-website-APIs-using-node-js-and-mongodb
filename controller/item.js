@@ -31,7 +31,8 @@ export default class ItemController {
 	static async addItem(req, res) {
 		const { _id, name } = req.user;
 		const { body } = req;
-		let item = await Item.createItem(_id, body, req.files);
+		const { err, status, message, item } = await Item.createItem(_id, body, req.files);
+		if (err) return res.status(status).send({ error: true, message });
 		await item.save();
 		res.status(201).send({ itemid: item._id, create: true, item });
 	}

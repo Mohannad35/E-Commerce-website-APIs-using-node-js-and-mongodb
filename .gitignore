@@ -1,6 +1,7 @@
 node_modules/
 coverage/
 .env
+.env.test
 notes.*
 testing.log
 .vscode/

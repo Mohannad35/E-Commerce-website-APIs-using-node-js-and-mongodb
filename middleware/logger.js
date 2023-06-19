@@ -29,7 +29,7 @@ const logger = createLogger({
 	rejectionHandlers: [new transports.File({ filename: 'logs/rejections.log' })]
 });
 
-if (config.get('env') === 'development') {
+if (config.get('env') === 'development' && config.get('logtailSourceToken')) {
 	const logtail = new Logtail(config.get('logtailSourceToken'));
 	logger.add(new LogtailTransport(logtail));
 	logger.add(

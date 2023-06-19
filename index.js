@@ -1,6 +1,6 @@
 import config from 'config';
 import express from 'express';
-// import 'express-async-errors';
+import 'express-async-errors';
 import debug from 'debug';
 import routing from './start/routes.js';
 import { init } from './database/db.js';

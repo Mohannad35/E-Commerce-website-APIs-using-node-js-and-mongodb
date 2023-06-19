@@ -3,6 +3,8 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import mongoose from 'mongoose';
 import logger from '../middleware/logger.js';
+import Brand from './brand.js';
+import Category from './category.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -105,9 +107,16 @@ itemSchema.statics.createItem = async function (owner, body, images) {
 	let { price } = body;
 	const dot = price.toString().indexOf('.');
 	if (dot !== -1) price = parseFloat(price.toString().slice(0, dot + 3));
+	if (brand) {
+		const brandExist = await Brand.findById(brand);
+		if (!brandExist) return { err: true, status: 404, message: 'Brand not found' };
+	}
+	const categoryExist = await Category.findById(category);
+	if (!categoryExist) return { err: true, status: 404, message: 'Category not found' };
 	let item = new Item({ brand, owner, category, name, description, quantity, price });
-	images.forEach(image => item.img.push(`http://localhost:5000/images/${image.filename}`));
-	return item;
+	images &&
+		images.forEach(image => item.img.push(`http://localhost:5000/images/${image.filename}`));
+	return { item };
 };
 
 itemSchema.statics.editItem = async function (id, owner, updates, body, images, deleteImages) {
@@ -117,6 +126,14 @@ itemSchema.statics.editItem = async function (id, owner, updates, body, images, 
 	if ('price' in body) {
 		const dot = body.price.toString().indexOf('.');
 		if (dot !== -1) body.price = parseFloat(body.price.toString().slice(0, dot + 3));
+	}
+	if ('brand' in body) {
+		const brandExist = await Brand.findById(body.brand);
+		if (!brandExist) return { err: true, status: 404, message: 'Brand not found' };
+	}
+	if ('category' in body) {
+		const categoryExist = await Category.findById(body.category);
+		if (!categoryExist) return { err: true, status: 404, message: 'Category not found' };
 	}
 	updates.forEach(update => (item[update] = body[update]));
 	images &&
