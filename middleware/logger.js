@@ -1,6 +1,6 @@
 import config from 'config';
-import { Logtail } from '@logtail/node';
-import { LogtailTransport } from '@logtail/winston';
+//import { Logtail } from '@logtail/node';
+//import { LogtailTransport } from '@logtail/winston';
 import { format, transports, createLogger } from 'winston';
 
 const { combine, timestamp, errors, prettyPrint, json, simple, colorize, align } = format;
@@ -30,8 +30,8 @@ const logger = createLogger({
 });
 
 if (config.get('env') === 'development') {
-	const logtail = new Logtail(config.get('logtailSourceToken'));
-	logger.add(new LogtailTransport(logtail));
+	//const logtail = new Logtail(config.get('logtailSourceToken'));
+	//logger.add(new LogtailTransport(logtail));
 	logger.add(
 		new transports.Console({
 			level: 'info',
