@@ -23,6 +23,7 @@ router.patch('/:id', [auth, isVendor, validateObjectId], OrderController.editOrd
 
 export default router;
 
+// api documentation
 /**
  * @api {get} /api/order Get All Orders
  * @apiName GetAllOrders
@@ -256,10 +257,10 @@ export default router;
  * @apiPermission Client
  * @apiUse AuthorizationHeader
  *
- * @apiBody {String="cash", "credit card"} paymentMethod payment method selected (must be a positive integer).
- * @apiBody {String} coupon coupon code for discount (must be a string).
- * @apiBody {String} address address to deliver to (must be a string).
- * @apiBody {String} contactPhone phone number for communication with delivery (must be a valid phone number).
+ * @apiBody {String="cash", "credit card"} [paymentMethod="cash"] payment method selected (must be a positive integer).
+ * @apiBody {String} [coupon] coupon code for discount (must be a string).
+ * @apiBody {String} [address="User pre registered address"] address to deliver to (must be a string).
+ * @apiBody {String} [contactPhone="User pre registered phone number"] phone number for communication with delivery (must be a valid phone number).
  * @apiExample {json} Request Body Example:
  *     {
  *       "address": "some address",

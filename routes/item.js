@@ -184,6 +184,7 @@ export default router;
  * @apiPermission Vendor
  * @apiUse AuthorizationHeader
  *
+ * @apiBody {File} [images] images of the item max 5 images as in form-data.
  * @apiBody {String} name name of the item (btw 3-55 and start with a letter).
  * @apiBody {String} description description of the item.
  * @apiBody {String} category category id of the item (must be a valid mongo id for an existing category).
@@ -234,12 +235,13 @@ export default router;
  *
  * @apiParam {String} id Item's unique ID in DB.
  *
- * @apiBody {String} name name of the item (btw 3-55 and start with a letter).
- * @apiBody {String} description description of the item.
- * @apiBody {String} category category id of the item (must be a valid mongo id for an existing category).
- * @apiBody {String} brand brand id of the item (must be a valid mongo id for an existing brand).
- * @apiBody {Number} price price of the item (must be a positive integer).
- * @apiBody {Number} quantity quantity of the item (must be a positive integer).
+ * @apiBody {File} [images] images of the item max 5 images as in form-data.
+ * @apiBody {String} [name] name of the item (btw 3-55 and start with a letter).
+ * @apiBody {String} [description] description of the item.
+ * @apiBody {String} [category] category id of the item (must be a valid mongo id for an existing category).
+ * @apiBody {String} [brand] brand id of the item (must be a valid mongo id for an existing brand).
+ * @apiBody {Number} [price] price of the item (must be a positive integer).
+ * @apiBody {Number} [quantity] quantity of the item (must be a positive integer).
  *
  * @apiSuccess (Success 200) {String} itemid the id of the updated item.
  * @apiSuccess (Success 200) {String} update if true the item is updated successfully.

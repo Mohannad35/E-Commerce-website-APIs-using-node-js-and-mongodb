@@ -207,6 +207,7 @@ export default router;
  * @apiPermission Admin
  * @apiUse AuthorizationHeader
  *
+ * @apiBody {File} [image] image of the category as in form-data.
  * @apiBody {String} title title of the category (btw 3-55 and start with a letter).
  * @apiExample {json} Request Body Example:
  *     {
@@ -246,7 +247,8 @@ export default router;
  *
  * @apiParam {String} id Category unique ID in DB.
  *
- * @apiBody {String} title title of the category (btw 3-55 and start with a letter).
+ * @apiBody {File} [image] image of the category as in form-data.
+ * @apiBody {String} [title] title of the category (btw 3-55 and start with a letter).
  * @apiExample {json} Request Body Example:
  *     {
  *       "title": "test category 2"

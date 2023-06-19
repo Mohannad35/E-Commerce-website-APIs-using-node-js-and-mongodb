@@ -136,6 +136,7 @@ export default router;
  * @apiPermission Admin
  * @apiUse AuthorizationHeader
  *
+ * @apiBody {File} [image] image of the brand as in form-data.
  * @apiBody {String} name name of the brand (btw 3-55 and start with a letter).
  * @apiExample {json} Request Body Example:
  *     {
@@ -168,13 +169,14 @@ export default router;
  * @api {patch} /api/brand/:id Edit Brand
  * @apiName EditBrand
  * @apiGroup Brand
- * @apiDescription Used to edit brand in the database
+ * @apiDescription Used to edit brand in the database.
  * @apiPermission Admin
  * @apiUse AuthorizationHeader
  *
  * @apiParam {String} id Brand unique ID in DB.
  *
- * @apiBody {String} name name of the brand (btw 3-55 and start with a letter).
+ * @apiBody {File} [image] image of the brand as in form-data.
+ * @apiBody {String} [name] name of the brand (btw 3-55 and start with a letter).
  * @apiExample {json} Request Body Example:
  *     {
  *       "name": "test brand 2"

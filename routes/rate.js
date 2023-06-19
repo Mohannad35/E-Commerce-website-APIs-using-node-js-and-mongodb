@@ -29,6 +29,7 @@ router.delete('/:id', [auth, validateObjectId], RateController.deleteRate);
 
 export default router;
 
+// api documentation
 /**
  * @api {get} /api/rate Get All Rate
  * @apiName GetAllRates
@@ -169,8 +170,8 @@ export default router;
  *
  * @apiParam {String} id Rate's unique ID in DB.
  *
- * @apiBody {Number} rateValue the value of the rate (must be a positive integer).
- * @apiBody {String} review the comment (details) of the review (must be a string).
+ * @apiBody {Number} [rateValue] the value of the rate (must be a positive integer).
+ * @apiBody {String} [review] the comment (details) of the review (must be a string).
  * @apiExample {json} Request Body Example:
  *     {
  *       "rateValue": 4.5,

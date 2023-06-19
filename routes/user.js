@@ -142,15 +142,15 @@ export default router;
  * @apiUse AuthorizationHeader
  * @apiPermission Admin
  *
- * @apiQuery {String="admin","vendor","client"} accountType User account type.
- * @apiQuery {String} name User name.
- * @apiQuery {String} email User e-mail.
- * @apiQuery {String="male","female"} gender User gender.
- * @apiQuery {Number} age User age. will return users older than age.
- * @apiQuery {Number} maxAge User age. will return users younger than maxAge.
- * @apiQuery {Number} pageNumber number ofd page to be sent.
- * @apiQuery {Number} pageSize size of page to be sent.
- * @apiQuery {String} sort a field to sort users according to it if more than one sent (separated by a comma ,) will take first one as primary sorting field others as secondary in case of primary field nondeterministic. also - means descending order.
+ * @apiQuery {String="admin","vendor","client"} [accountType] User account type.
+ * @apiQuery {String} [name] User name.
+ * @apiQuery {String} [email] User e-mail.
+ * @apiQuery {String="male","female"} [gender] User gender.
+ * @apiQuery {Number} [age] User age. will return users older than age.
+ * @apiQuery {Number} [maxAge] User age. will return users younger than maxAge.
+ * @apiQuery {Number} [pageNumber] number ofd page to be sent.
+ * @apiQuery {Number} [pageSize] size of page to be sent.
+ * @apiQuery {String} [sort] a field to sort users according to it if more than one sent (separated by a comma ,) will take first one as primary sorting field others as secondary in case of primary field nondeterministic. also - means descending order.
  *
  * @apiSuccess (Success 200) {Object[]} users array containing Users information.
  * @apiSuccess (Success 200) {String} pageNumber number of page received.
@@ -225,9 +225,9 @@ export default router;
  * @apiUse AuthorizationHeader
  * @apiPermission Admin
  *
- * @apiQuery {String="admin","vendor","client"} accountType User account type.
- * @apiQuery {String="male","female"} gender User gender.
- * @apiQuery {String} date should be in format of YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD (from,to).
+ * @apiQuery {String="admin","vendor","client"} [accountType] User account type.
+ * @apiQuery {String="male","female"} [gender] User gender.
+ * @apiQuery {String} [date] should be in format of YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD (from,to).
  *
  * @apiSuccess (Success 200) {String} length length of data received.
  * @apiSuccessExample {json} Success Response:
@@ -510,9 +510,9 @@ export default router;
  * @apiPermission Client
  * @apiUse AuthorizationHeader
  *
- * @apiBody {String} name name of the User length btw 3-55.
- * @apiBody {String} email user email must be a valid email (must be unique).
- * @apiBody {String} phoneNumber user phone number must be a valid egyptian phone number (must be unique).
+ * @apiBody {String} [name] name of the User length btw 3-55.
+ * @apiBody {String} [email] user email must be a valid email (must be unique).
+ * @apiBody {String} [phoneNumber] user phone number must be a valid egyptian phone number (must be unique).
  * @apiBody {String} [birthday] user birthday.
  * @apiBody {String="male","female"} [gender] user gender.
  * @apiBody {String} [city] user city.
