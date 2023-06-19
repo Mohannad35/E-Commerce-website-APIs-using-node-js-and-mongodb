@@ -1,6 +1,6 @@
 import config from 'config';
-import { Logtail } from '@logtail/node';
-import { LogtailTransport } from '@logtail/winston';
+//import { Logtail } from '@logtail/node';
+//import { LogtailTransport } from '@logtail/winston';
 import { format, transports, createLogger } from 'winston';
 
 const { combine, timestamp, errors, prettyPrint, json, simple, colorize, align } = format;
