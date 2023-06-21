@@ -3,7 +3,7 @@ import smn from 'joi-objectid';
 
 Joi.objectId = smn(Joi);
 const joiTitle = Joi.string()
-	.min(2)
+	.min(3)
 	.max(255)
 	.pattern(/^\p{L}.*$/u)
 	.message('title should start with a letter');

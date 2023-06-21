@@ -26,9 +26,6 @@ export default function (app) {
 	app.use(allowedHeaders);
 	// All controllers should live here
 	app.get('/', (req, res) => res.end('Hello world!'));
-	app.get('/debug-sentry', (req, res) => {
-		throw new Error('My first Sentry error!');
-	});
 	app.use('/api/user', userRouter);
 	app.use('/api/item', itemRouter);
 	app.use('/api/cart', cartRouter);

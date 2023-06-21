@@ -1,7 +1,7 @@
 import Joi from 'joi';
 
 const joiName = Joi.string()
-	.min(2)
+	.min(3)
 	.max(255)
 	.pattern(/^[\p{L}].*$/u)
 	.message('name should start with a letter');
