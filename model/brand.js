@@ -62,7 +62,10 @@ brandSchema.statics.getBrandById = async function (id) {
 brandSchema.statics.createBrand = async function (name, img) {
 	let brand = await Brand.findOne({ name });
 	if (brand) return { err: true, status: 400, message: 'This brand already exists' };
-	brand = new Brand({ name, img: `http://localhost:5000/brands/${img.filename}` });
+	brand = new Brand({
+		name,
+		img: `${config.get('server_url') || 'http://localhost:5000/'}brands/${img.filename}`
+	});
 	return { brand };
 };
 
@@ -75,7 +78,7 @@ brandSchema.statics.editBrand = async function (id, name = null, img = null) {
 			`${__dirname.replace(/model/, '')}public/brands/${brand.img.replace(/.*brands\//, '')}`,
 			err => err && logger.error(err.message, err)
 		);
-		brand.img = `http://localhost:5000/brands/${img.filename}`;
+		brand.img = `${config.get('server_url') || 'http://localhost:5000/'}brands/${img.filename}`;
 	}
 	return { brand };
 };

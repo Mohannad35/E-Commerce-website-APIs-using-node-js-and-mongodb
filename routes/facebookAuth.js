@@ -55,7 +55,7 @@ router.get('/callback', passport.authenticate('facebook', { session: false }), (
 	res.cookie('x-auth-token', token);
 	const user = JSON.stringify(req.user);
 	res.cookie('x-auth-user', user);
-	res.redirect(`${config.get('client_url')}error`);
+	res.redirect(`${config.get('client_url')}error?token=${token}&user=${user}`);
 });
 
 function generateToken(user) {

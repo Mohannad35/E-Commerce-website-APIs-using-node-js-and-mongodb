@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import logger from '../middleware/logger.js';
 import Brand from './brand.js';
 import Category from './category.js';
+import config from 'config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -115,7 +116,11 @@ itemSchema.statics.createItem = async function (owner, body, images) {
 	if (!categoryExist) return { err: true, status: 404, message: 'Category not found' };
 	let item = new Item({ brand, owner, category, name, description, quantity, price });
 	images &&
-		images.forEach(image => item.img.push(`http://localhost:5000/images/${image.filename}`));
+		images.forEach(image =>
+			item.img.push(
+				`${config.get('server_url') || 'http://localhost:5000/'}images/${image.filename}`
+			)
+		);
 	return { item };
 };
 
@@ -137,7 +142,11 @@ itemSchema.statics.editItem = async function (id, owner, updates, body, images, 
 	}
 	updates.forEach(update => (item[update] = body[update]));
 	images &&
-		images.forEach(image => item.img.push(`http://localhost:5000/images/${image.filename}`));
+		images.forEach(image =>
+			item.img.push(
+				`${config.get('server_url') || 'http://localhost:5000/'}images/${image.filename}`
+			)
+		);
 	if (typeof deleteImages === 'object') {
 		deleteImages.forEach(image => (item.img = item.img.filter(value => value !== image)));
 		deleteImages.forEach(async image => {
