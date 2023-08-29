@@ -30,7 +30,7 @@ const logger = createLogger({
 });
 
 if (config.get('env') === 'development') {
-	if (config.get('logtailSourceToken')) {
+	if (config.has('logtailSourceToken') && config.get('logtailSourceToken') !== '') {
 		const logtail = new Logtail(config.get('logtailSourceToken'));
 		logger.add(new LogtailTransport(logtail));
 	}

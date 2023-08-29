@@ -3,7 +3,7 @@ import logger from '../middleware/logger.js';
 import config from 'config';
 
 export default function init(app) {
-	if (config.get('dsn')) {
+	if (config.has('dsn') && config.get('dsn') !== '') {
 		Sentry.init({
 			dsn: config.get('dsn'),
 			integrations: [
@@ -30,7 +30,7 @@ export default function init(app) {
 }
 
 export function errorHandler(app) {
-	if (config.get('dsn')) {
+	if (config.has('dsn') && config.get('dsn') !== '') {
 		// The error handler must be before any other error middleware and after all controllers
 		app.use(Sentry.Handlers.errorHandler());
 
