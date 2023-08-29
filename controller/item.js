@@ -20,9 +20,17 @@ export default class ItemController {
 	}
 
 	// get item by id from database and return it as JSON object
-	static async getOneItem(req, res) {
+	static async getOneItemById(req, res) {
 		const { populate } = req.query;
 		const item = await Item.getItemById(req.params.id, populate);
+		if (!item) return res.status(404).send({ message: 'Item not found' });
+		res.status(200).send({ item });
+	}
+
+	// get item by slug from database and return it as JSON object
+	static async getOneItemBySlug(req, res) {
+		const { populate } = req.query;
+		const item = await Item.getItemBySlug(req.params.slug, populate);
 		if (!item) return res.status(404).send({ message: 'Item not found' });
 		res.status(200).send({ item });
 	}

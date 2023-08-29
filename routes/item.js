@@ -22,12 +22,15 @@ const upload = multer({ storage });
 router.get('/', [validate('query', ItemValidator.getItems)], ItemController.items);
 
 // fetch an item
-router.get('/:id', [validateObjectId], ItemController.getOneItem);
+router.get('/:id', [validateObjectId], ItemController.getOneItemById);
+
+// fetch an item
+router.get('/slug/:slug', [], ItemController.getOneItemBySlug);
 
 // create an item
 router.post(
 	'/',
-	[upload.array('images', 5), auth, isVendor, validate('body', ItemValidator.addItem)],
+	[upload.array('images', 10), auth, isVendor, validate('body', ItemValidator.addItem)],
 	ItemController.addItem
 );
 
@@ -35,7 +38,7 @@ router.post(
 router.patch(
 	'/:id',
 	[
-		upload.array('images', 5),
+		upload.array('images', 10),
 		auth,
 		isVendor,
 		validateObjectId,

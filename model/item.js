@@ -6,6 +6,8 @@ import logger from '../middleware/logger.js';
 import Brand from './brand.js';
 import Category from './category.js';
 import config from 'config';
+import slug from 'mongoose-slug-updater';
+mongoose.plugin(slug);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -29,7 +31,8 @@ const itemSchema = new mongoose.Schema(
 		ratingCount: { type: Number, default: 0, min: [0, 'Invalid rating count'] },
 		category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
 		owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-		brand: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand' }
+		brand: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand' },
+		slug: { type: String, slug: ['name'], unique: true }
 	},
 	{
 		timestamps: true
@@ -101,6 +104,24 @@ itemSchema.statics.getItemById = async function (id, populate) {
 			.populate('category')
 			.populate('brand');
 	return await Item.findById(id);
+};
+
+itemSchema.statics.getItemBySlug = async function (slug, populate) {
+	if (populate) {
+		let itm = await Item.findOne({ slug })
+			.populate('owner', 'name email')
+			.populate('category')
+			.populate('brand');
+		if (!itm)
+			itm = await Item.findById(slug)
+				.populate('owner', 'name email')
+				.populate('category')
+				.populate('brand');
+		return itm;
+	}
+	let itm = await Item.findOne({ slug });
+	if (!itm) itm = await Item.findById(slug);
+	return itm;
 };
 
 itemSchema.statics.createItem = async function (owner, body, images) {
