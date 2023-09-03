@@ -5,6 +5,7 @@ import _ from 'lodash';
 import logger from '../middleware/logger.js';
 import mongoose from 'mongoose';
 import slug from 'mongoose-slug-updater';
+import config from 'config';
 mongoose.plugin(slug);
 
 const __filename = fileURLToPath(import.meta.url);
