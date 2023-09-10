@@ -6,16 +6,11 @@ import validate from '../middleware/validateReq.js';
 import BrandValidator from '../validation/brand.js';
 import BrandController from '../controller/brand.js';
 import validateObjectId from '../middleware/validateObjectId.js';
+import { azureStorage } from '../start/azure-storage.js';
 
 const router = Router();
-const storage = multer.diskStorage({
-	destination: 'public/brands',
-	filename: function (req, file, cb) {
-		const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-		cb(null, file.fieldname + '-' + uniqueSuffix + '.png');
-	}
-});
-const upload = multer({ storage });
+
+const upload = multer({ storage: azureStorage });
 
 // fetch all Brands
 router.get('/', [validate('query', BrandValidator.getBrands)], BrandController.brands);

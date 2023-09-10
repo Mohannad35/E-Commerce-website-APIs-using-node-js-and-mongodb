@@ -7,6 +7,7 @@ import Brand from './brand.js';
 import Category from './category.js';
 import config from 'config';
 import slug from 'mongoose-slug-updater';
+import { deleteBlob } from '../start/azure-storage.js';
 mongoose.plugin(slug);
 
 const __filename = fileURLToPath(import.meta.url);
@@ -139,7 +140,8 @@ itemSchema.statics.createItem = async function (owner, body, images) {
 	images &&
 		images.forEach(image =>
 			item.img.push(
-				`${process.env.SERVER_URL || 'http://localhost:5000/'}images/${image.filename}`
+				image.url?.replace(/\?.*/, '') ??
+					`${process.env.SERVER_URL || 'http://localhost:5000/'}images/${image.filename}`
 			)
 		);
 	return { item };
@@ -165,7 +167,8 @@ itemSchema.statics.editItem = async function (id, owner, updates, body, images, 
 	images &&
 		images.forEach(image =>
 			item.img.push(
-				`${process.env.SERVER_URL || 'http://localhost:5000/'}images/${image.filename}`
+				image.url?.replace(/\?.*/, '') ??
+					`${process.env.SERVER_URL || 'http://localhost:5000/'}images/${image.filename}`
 			)
 		);
 	if (typeof deleteImages === 'object') {
@@ -173,15 +176,17 @@ itemSchema.statics.editItem = async function (id, owner, updates, body, images, 
 		deleteImages.forEach(async image => {
 			await unlink(
 				`${__dirname.replace(/model/, '')}public/images/${image.replace(/.*images\//, '')}`,
-				err => err && logger.error(err.message, err)
+				err => err && err.code !== 'ENOENT' && logger.error(err.message, err)
 			);
+			await deleteBlob('images', image?.replace(/.*images\//, ''));
 		});
 	} else if (typeof deleteImages === 'string') {
 		item.img = item.img.filter(img => img !== deleteImages);
 		await unlink(
 			`${__dirname.replace(/model/, '')}public/images/${deleteImages.replace(/.*images\//, '')}`,
-			err => err && logger.error(err.message, err)
+			err => err && err.code !== 'ENOENT' && logger.error(err.message, err)
 		);
+		await deleteBlob('images', deleteImages?.replace(/.*images\//, ''));
 	}
 	return { item };
 };
@@ -195,6 +200,7 @@ itemSchema.statics.deleteItem = async function (id, owner) {
 			`${__dirname.replace(/model/, '')}public/images/${image.replace(/.*images\//, '')}`,
 			err => err && logger.error(err.message, err)
 		);
+		await deleteBlob('images', image?.replace(/.*images\//, ''));
 	});
 	await Item.deleteOne({ _id: item._id });
 	return { item };

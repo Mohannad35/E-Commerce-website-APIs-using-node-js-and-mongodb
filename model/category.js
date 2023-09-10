@@ -6,6 +6,7 @@ import logger from '../middleware/logger.js';
 import mongoose from 'mongoose';
 import slug from 'mongoose-slug-updater';
 import config from 'config';
+import { deleteBlob } from '../start/azure-storage.js';
 mongoose.plugin(slug);
 
 const __filename = fileURLToPath(import.meta.url);
@@ -130,7 +131,9 @@ categorySchema.statics.createCategory = async function (title, img, parentId = n
 	const category = img
 		? new Category({
 				title,
-				img: `${process.env.SERVER_URL || 'http://localhost:5000/'}categories/${img.filename}`,
+				img:
+					img.url?.replace(/\?.*/, '') ??
+					`${process.env.SERVER_URL || 'http://localhost:5000/'}categories/${img.filename}`,
 				parent: parentId ? { parentId: parent._id, parentTitle: parent.title } : null
 		  })
 		: new Category({
@@ -150,8 +153,10 @@ categorySchema.statics.editCategory = async function (id, title = null, img = nu
 				/.*categories\//,
 				''
 			)}`,
-			err => err && logger.error(err.message, err)
+			err => err && err.code !== 'ENOENT' && logger.error(err.message, err)
 		);
+		await deleteBlob('images', category.img?.replace(/.*images\//, ''));
+
 		category.img = `${process.env.SERVER_URL || 'http://localhost:5000/'}categories/${
 			img.filename
 		}`;
@@ -168,8 +173,10 @@ categorySchema.statics.deleteCategory = async function (id) {
 				/.*categories\//,
 				''
 			)}`,
-			err => err && logger.error(err.message, err)
+			err => err && err.code !== 'ENOENT' && logger.error(err.message, err)
 		);
+	await deleteBlob('images', category.img?.replace(/.*images\//, ''));
+
 	await Category.deleteOne({ _id: category._id });
 	return { category };
 };

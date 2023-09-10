@@ -20,13 +20,8 @@ const logger = createLogger({
 		json()
 	),
 	defaultMeta: { service: 'user-service' },
-	transports: [
-		new transports.File({ filename: 'logs/error.log', level: 'error' }),
-		new transports.File({ filename: 'logs/combined.log', level: 'info' }),
-		new transports.File({ filename: 'logs/http.log', level: 'http' })
-	],
-	exceptionHandlers: [new transports.File({ filename: 'logs/exception.log' })],
-	rejectionHandlers: [new transports.File({ filename: 'logs/rejections.log' })]
+	exceptionHandlers: [new transports.Console({ format: consoleFormat })],
+	rejectionHandlers: [new transports.Console({ format: consoleFormat })]
 });
 
 if (process.env.NODE_ENV === 'development') {
@@ -38,6 +33,16 @@ if (process.env.NODE_ENV === 'development') {
 		new transports.Console({
 			level: 'info',
 			format: consoleFormat,
+			handleExceptions: true,
+			handleRejections: true
+		})
+	);
+	logger.add(new transports.File({ filename: 'logs/http.log', level: 'http' }));
+	logger.add(new transports.File({ filename: 'logs/combined.log', level: 'info' }));
+	logger.add(
+		new transports.File({
+			filename: 'logs/error.log',
+			level: 'error',
 			handleExceptions: true,
 			handleRejections: true
 		})

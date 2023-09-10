@@ -4,6 +4,7 @@ import { dirname } from 'path';
 import mongoose from 'mongoose';
 import logger from '../middleware/logger.js';
 import config from 'config';
+import { deleteBlob } from '../start/azure-storage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -65,7 +66,9 @@ brandSchema.statics.createBrand = async function (name, img) {
 	if (brand) return { err: true, status: 400, message: 'This brand already exists' };
 	brand = new Brand({
 		name,
-		img: `${process.env.SERVER_URL || 'http://localhost:5000/'}brands/${img.filename}`
+		img:
+			img.url?.replace(/\?.*/, '') ??
+			`${process.env.SERVER_URL || 'http://localhost:5000/'}brands/${img.filename}`
 	});
 	return { brand };
 };
@@ -77,9 +80,12 @@ brandSchema.statics.editBrand = async function (id, name = null, img = null) {
 	if (img) {
 		await unlink(
 			`${__dirname.replace(/model/, '')}public/brands/${brand.img.replace(/.*brands\//, '')}`,
-			err => err && logger.error(err.message, err)
+			err => err && err.code !== 'ENOENT' && logger.error(err.message, err)
 		);
-		brand.img = `${process.env.SERVER_URL || 'http://localhost:5000/'}brands/${img.filename}`;
+		await deleteBlob('images', brand.img?.replace(/.*images\//, ''));
+		brand.img =
+			img.url?.replace(/\?.*/, '') ??
+			`${process.env.SERVER_URL || 'http://localhost:5000/'}brands/${img.filename}`;
 	}
 	return { brand };
 };
@@ -89,8 +95,9 @@ brandSchema.statics.deleteBrand = async function (id) {
 	if (!brand) return { err: true, status: 404, message: 'Brand not found' };
 	await unlink(
 		`${__dirname.replace(/model/, '')}public/brands/${brand.img.replace(/.*brands\//, '')}`,
-		err => err && logger.error(err.message, err)
+		err => err && err.code !== 'ENOENT' && logger.error(err.message, err)
 	);
+	await deleteBlob('images', brand.img?.replace(/.*images\//, ''));
 	await Brand.deleteOne({ _id: brand._id });
 	return { brand };
 };
