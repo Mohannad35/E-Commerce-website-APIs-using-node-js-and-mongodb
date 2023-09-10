@@ -139,7 +139,7 @@ itemSchema.statics.createItem = async function (owner, body, images) {
 	images &&
 		images.forEach(image =>
 			item.img.push(
-				`${config.get('server_url') || 'http://localhost:5000/'}images/${image.filename}`
+				`${process.env.SERVER_URL || 'http://localhost:5000/'}images/${image.filename}`
 			)
 		);
 	return { item };
@@ -165,7 +165,7 @@ itemSchema.statics.editItem = async function (id, owner, updates, body, images, 
 	images &&
 		images.forEach(image =>
 			item.img.push(
-				`${config.get('server_url') || 'http://localhost:5000/'}images/${image.filename}`
+				`${process.env.SERVER_URL || 'http://localhost:5000/'}images/${image.filename}`
 			)
 		);
 	if (typeof deleteImages === 'object') {

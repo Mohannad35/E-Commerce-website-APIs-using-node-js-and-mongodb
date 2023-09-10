@@ -7,7 +7,7 @@ const dbDebugger = debug('app:db');
 
 export async function init() {
 	let db = await mongoose
-		.connect(config.get('mongodb_url'), {
+		.connect(process.env.MONGODB_URL, {
 			useUnifiedTopology: true,
 			useNewUrlParser: true,
 			autoIndex: true

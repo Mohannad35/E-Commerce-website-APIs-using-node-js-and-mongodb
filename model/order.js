@@ -5,7 +5,7 @@ import config from 'config';
 import Item from './item.js';
 import Cart from './cart.js';
 import User from './user.js';
-sgMail.setApiKey(config.get('sendgrid_apikey'));
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const orderSchema = new mongoose.Schema(
 	{
@@ -205,7 +205,7 @@ orderSchema.statics.checkout = async function (owner, paymentMethod, contactPhon
 		index++;
 		let vendorItems = [];
 		const user = await User.findOne({ _id: vendor });
-		const link = `${config.get('client_url')}user/allorders`;
+		const link = `${process.env.CLIENT_URL}user/allorders`;
 		const msg = {
 			to: user.email,
 			from: {

@@ -6,7 +6,7 @@ import crypto from 'crypto';
 import config from 'config';
 import User from './../model/user.js';
 import logger from '../middleware/logger.js';
-sgMail.setApiKey(config.get('sendgrid_apikey'));
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 export default class UserController {
 	static async users(req, res) {
@@ -112,14 +112,14 @@ export default class UserController {
 				email: 'mohannadragab53@gmail.com',
 				name: 'E-commerce Team'
 			},
-			subject: config.get('project_issuer') + ' Vendor Request Declined',
+			subject: process.env.PROJECT_ISSUER + ' Vendor Request Declined',
 			html:
 				'Hi ' +
 				user.name +
 				',<br>Your vendor request have been declined.<br>' +
 				'Please apply another request with more details.<br>' +
 				'Thank you for choosing ' +
-				config.get('project_issuer') +
+				process.env.PROJECT_ISSUER +
 				'!'
 		};
 		await sgMail.send(msg);
@@ -138,14 +138,14 @@ export default class UserController {
 		const user = await User.changeAccountType(id, type);
 		if (!user) return res.status(404).send({ error: true, message: 'User not found' });
 		await user.save();
-		const link = `${config.get('client_url')}user/profile?refresh=true`;
+		const link = `${process.env.CLIENT_URL}user/profile?refresh=true`;
 		const msg = {
 			to: user.email,
 			from: {
 				email: 'mohannadragab53@gmail.com',
 				name: 'E-commerce Team'
 			},
-			subject: config.get('project_issuer') + ' Vendor Request Accepted',
+			subject: process.env.PROJECT_ISSUER + ' Vendor Request Accepted',
 			html:
 				'Hi ' +
 				user.name +
@@ -156,7 +156,7 @@ export default class UserController {
 				link +
 				'>Click here</a> to see changes.<br>' +
 				'Thank you for choosing ' +
-				config.get('project_issuer') +
+				process.env.PROJECT_ISSUER +
 				'!'
 		};
 		await sgMail.send(msg);
@@ -208,18 +208,18 @@ export default class UserController {
 				email: 'mohannadragab53@gmail.com',
 				name: 'E-commerce Team'
 			},
-			subject: config.get('project_issuer') + ' Email Verification Complete',
+			subject: process.env.PROJECT_ISSUER + ' Email Verification Complete',
 			html:
 				'Hi ' +
 				user.name +
 				',<br>Congratulations! You have successfully verified your email address for your ' +
-				config.get('project_issuer') +
+				process.env.PROJECT_ISSUER +
 				' account.<br>You can now access all the features and benefits of our app.<br>Thank you for choosing ' +
-				config.get('project_issuer') +
+				process.env.PROJECT_ISSUER +
 				'!'
 		};
 		await sgMail.send(msg);
-		res.redirect(`${config.get('client_url')}user/profile?refresh=true`);
+		res.redirect(`${process.env.CLIENT_URL}user/profile?refresh=true`);
 	}
 
 	static async resend(req, res) {
@@ -263,9 +263,9 @@ export default class UserController {
 		const user = await User.getUserByEmail(email);
 		if (!user) return res.status(404).send({ message: 'User not found.' });
 		const code = crypto.randomBytes(32).toString('hex');
-		const token = jwt.sign({ code }, config.get('jwtPrivateKey'), {
+		const token = jwt.sign({ code }, process.env.ECOMMERCE_JWT_PRIVATE_KEY, {
 			expiresIn: '1h',
-			issuer: config.get('project_issuer')
+			issuer: process.env.PROJECT_ISSUER
 		});
 		_.set(user, 'code', code);
 		await user.save();
@@ -305,11 +305,11 @@ export default class UserController {
 	static async redirectForgetPassword(req, res) {
 		const { token } = req.query;
 		try {
-			const decoded = jwt.verify(token, config.get('jwtPrivateKey'));
+			const decoded = jwt.verify(token, process.env.ECOMMERCE_JWT_PRIVATE_KEY);
 			const user = await User.findOne({ code: decoded.code });
 			if (!user) return res.status(400).send('<h1>Code is not valid anymore<h1/>');
 			// render or redirect to change password page with decoded._id
-			res.redirect(`${config.get('client_url')}user/reset-password?code=${decoded.code}`);
+			res.redirect(`${process.env.CLIENT_URL}user/reset-password?code=${decoded.code}`);
 		} catch (error) {
 			console.log(error);
 			res
@@ -336,9 +336,9 @@ export default class UserController {
 				'Hello ' +
 				user.name +
 				',<br>This email is to confirm that you have successfully changed your password for your ' +
-				config.get('project_issuer') +
+				process.env.PROJECT_ISSUER +
 				' account.<br>If you did not request this change, please contact our support team immediately.<br>Thank you for using ' +
-				config.get('project_issuer') +
+				process.env.PROJECT_ISSUER +
 				'!'
 		};
 		await sgMail

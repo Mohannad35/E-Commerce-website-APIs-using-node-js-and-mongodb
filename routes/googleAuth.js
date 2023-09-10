@@ -11,9 +11,9 @@ const router = Router();
 passport.use(
 	new GoogleStrategy(
 		{
-			clientID: config.get('googleClientId'),
-			clientSecret: config.get('googleSecretKey'),
-			callbackURL: config.get('googleCallbackUrl')
+			clientID: process.env.GOOGLE_CLIENT_ID,
+			clientSecret: process.env.GOOGLE_SECRET_KEY,
+			callbackURL: process.env.GOOGLE_CALLBACK_URL
 		},
 		async function (accessToken, refreshToken, profile, done) {
 			const user = await User.findOne({
@@ -49,12 +49,12 @@ passport.use(
 router.get('/', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 router.get('/callback', passport.authenticate('google', { session: false }), (req, res) => {
-	if (req.user.err) return res.redirect(`${config.get('client_url')}error?msg=${req.user.msg}`);
+	if (req.user.err) return res.redirect(`${process.env.CLIENT_URL}error?msg=${req.user.msg}`);
 	const token = req.user.jwtToken;
 	res.cookie('x-auth-token', token);
 	const user = JSON.stringify(req.user);
 	res.cookie('x-auth-user', user);
-	res.redirect(`${config.get('client_url')}error?token=${token}&user=${user}`);
+	res.redirect(`${process.env.CLIENT_URL}error?token=${token}&user=${user}`);
 });
 
 function generateToken(user) {
@@ -65,10 +65,10 @@ function generateToken(user) {
 			accountType: user.accountType,
 			email_verified: true
 		},
-		config.get('jwtPrivateKey'),
+		process.env.ECOMMERCE_JWT_PRIVATE_KEY,
 		{
 			expiresIn: '7d',
-			issuer: config.get('project_issuer')
+			issuer: process.env.PROJECT_ISSUER
 		}
 	);
 }

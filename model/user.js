@@ -89,8 +89,8 @@ userSchema.methods.generateAuthToken = async function () {
 			email_verified: user.isVerified,
 			__v: user.__v
 		},
-		config.get('jwtPrivateKey'),
-		{ expiresIn: '7d', issuer: config.get('project_issuer') }
+		process.env.ECOMMERCE_JWT_PRIVATE_KEY,
+		{ expiresIn: '7d', issuer: process.env.PROJECT_ISSUER }
 	);
 	return token;
 };

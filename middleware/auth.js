@@ -9,7 +9,7 @@ export default async (req, res, next) => {
 		if (!token)
 			return res.status(401).send({ message: 'Access denied.', reason: 'No token provided.' });
 		token = token.replace('Bearer ', '');
-		const decoded = jwt.verify(token, config.get('jwtPrivateKey'));
+		const decoded = jwt.verify(token, process.env.ECOMMERCE_JWT_PRIVATE_KEY);
 		req.token = token;
 		req.user = decoded;
 		next();

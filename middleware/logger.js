@@ -29,19 +29,19 @@ const logger = createLogger({
 	rejectionHandlers: [new transports.File({ filename: 'logs/rejections.log' })]
 });
 
-// if (config.get('env') === 'development') {
-// 	if (config.has('logtailSourceToken') && config.get('logtailSourceToken') !== '') {
-// 		const logtail = new Logtail(config.get('logtailSourceToken'));
-// 		logger.add(new LogtailTransport(logtail));
-// 	}
-// 	logger.add(
-// 		new transports.Console({
-// 			level: 'info',
-// 			format: consoleFormat,
-// 			handleExceptions: true,
-// 			handleRejections: true
-// 		})
-// 	);
-// }
+if (process.env.NODE_ENV === 'development') {
+	if (process.env.LOGTAIL_SOURCE_TOKEN && process.env.LOGTAIL_SOURCE_TOKEN !== '') {
+		const logtail = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN);
+		logger.add(new LogtailTransport(logtail));
+	}
+	logger.add(
+		new transports.Console({
+			level: 'info',
+			format: consoleFormat,
+			handleExceptions: true,
+			handleRejections: true
+		})
+	);
+}
 
 export default logger;

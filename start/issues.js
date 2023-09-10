@@ -3,9 +3,9 @@ import logger from '../middleware/logger.js';
 import config from 'config';
 
 export default function init(app) {
-	if (config.has('dsn') && config.get('dsn') !== '') {
+	if (process.env.DSN && process.env.DSN !== '') {
 		Sentry.init({
-			dsn: config.get('dsn'),
+			dsn: process.env.DSN,
 			integrations: [
 				// enable HTTP calls tracing
 				new Sentry.Integrations.Http({ tracing: true }),
@@ -30,7 +30,7 @@ export default function init(app) {
 }
 
 export function errorHandler(app) {
-	if (config.has('dsn') && config.get('dsn') !== '') {
+	if (process.env.DSN && process.env.DSN !== '') {
 		// The error handler must be before any other error middleware and after all controllers
 		app.use(Sentry.Handlers.errorHandler());
 

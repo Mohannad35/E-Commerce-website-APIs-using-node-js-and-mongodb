@@ -130,7 +130,7 @@ categorySchema.statics.createCategory = async function (title, img, parentId = n
 	const category = img
 		? new Category({
 				title,
-				img: `${config.get('server_url') || 'http://localhost:5000/'}categories/${img.filename}`,
+				img: `${process.env.SERVER_URL || 'http://localhost:5000/'}categories/${img.filename}`,
 				parent: parentId ? { parentId: parent._id, parentTitle: parent.title } : null
 		  })
 		: new Category({
@@ -152,7 +152,7 @@ categorySchema.statics.editCategory = async function (id, title = null, img = nu
 			)}`,
 			err => err && logger.error(err.message, err)
 		);
-		category.img = `${config.get('server_url') || 'http://localhost:5000/'}categories/${
+		category.img = `${process.env.SERVER_URL || 'http://localhost:5000/'}categories/${
 			img.filename
 		}`;
 	}
