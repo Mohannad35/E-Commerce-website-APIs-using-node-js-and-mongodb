@@ -54,9 +54,9 @@ itemSchema.statics.getItems = async function (query) {
 	let items = [],
 		total = 0;
 	name = name ? new RegExp(name.replace('-', ' '), 'i') : /.*/;
-	brand = brand ? brand.split(',') : undefined;
-	owner = owner ? owner.split(',') : undefined;
-	category = category ? category.split(',') : undefined;
+	brand = brand === '' ? undefined : brand?.split(',');
+	owner = owner === '' ? undefined : owner?.split(',');
+	category = category === '' ? undefined : category?.split(',');
 	if (sold) {
 		sort = '-sold';
 		items = await Item.find({}, {}, { skip, limit, sort }).collation({ locale: 'en' });
