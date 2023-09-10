@@ -1,0 +1,18 @@
+{
+	"client_url": "",
+	"server_url": "",
+	"project_issuer": "",
+	"env": "",
+	"port": "",
+	"dsn": "",
+	"mongodb_url": "",
+	"jwtPrivateKey": "",
+	"logtailSourceToken": "",
+	"sendgrid_apikey": "",
+	"facebookClientId": "",
+	"facebookSecretKey": "",
+	"facebookCallbackUrl": "",
+	"googleClientId": "",
+	"googleSecretKey": "",
+	"googleCallbackUrl": ""
+}
