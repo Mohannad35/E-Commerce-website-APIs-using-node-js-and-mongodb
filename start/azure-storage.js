@@ -41,7 +41,7 @@ export async function deleteBlob(containerName, blobName) {
 	// Create blob client from container client
 	const blockBlobClient = await containerClient.getBlockBlobClient(blobName);
 
-	await blockBlobClient.delete(options);
+	await blockBlobClient.deleteIfExists(options);
 
 	logger.info(`deleted blob ${blobName}`);
 }
