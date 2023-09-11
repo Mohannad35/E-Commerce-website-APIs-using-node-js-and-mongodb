@@ -17,7 +17,7 @@ logging(app);
 configuration();
 routing(app);
 init();
-// production(app);
+production(app);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => sDebugger(`Listening on port ${port}...`));
