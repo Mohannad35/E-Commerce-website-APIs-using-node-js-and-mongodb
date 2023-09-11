@@ -20,6 +20,4 @@ init();
 // production(app);
 
 const port = process.env.PORT || 3000;
-const server = app.listen(port, () => sDebugger(`Listening on port ${port}...`));
-
-export default server;
+app.listen(port, () => sDebugger(`Listening on port ${port}...`));

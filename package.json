@@ -12,7 +12,7 @@
 		"ES6test": "cls && env-cmd -f ./config/.env.test node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose --detectOpenHandles --coverage --testLocationInResults --useStderr --colors"
 	},
 	"engines": {
-		"node": "18"
+		"node": "18.x"
 	},
 	"repository": {
 		"type": "git",
