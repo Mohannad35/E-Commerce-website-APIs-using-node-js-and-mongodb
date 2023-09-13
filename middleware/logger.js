@@ -20,23 +20,17 @@ const logger = createLogger({
 		json()
 	),
 	defaultMeta: { service: 'user-service' },
+	transports: [new transports.Console({ level: 'info', format: consoleFormat })],
 	exceptionHandlers: [new transports.Console({ format: consoleFormat })],
 	rejectionHandlers: [new transports.Console({ format: consoleFormat })]
 });
 
+if (process.env.LOGTAIL_SOURCE_TOKEN && process.env.LOGTAIL_SOURCE_TOKEN !== '') {
+	const logtail = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN);
+	logger.add(new LogtailTransport(logtail));
+}
+
 if (process.env.NODE_ENV === 'development') {
-	if (process.env.LOGTAIL_SOURCE_TOKEN && process.env.LOGTAIL_SOURCE_TOKEN !== '') {
-		const logtail = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN);
-		logger.add(new LogtailTransport(logtail));
-	}
-	logger.add(
-		new transports.Console({
-			level: 'info',
-			format: consoleFormat,
-			handleExceptions: true,
-			handleRejections: true
-		})
-	);
 	logger.add(new transports.File({ filename: 'logs/http.log', level: 'http' }));
 	logger.add(new transports.File({ filename: 'logs/combined.log', level: 'info' }));
 	logger.add(
