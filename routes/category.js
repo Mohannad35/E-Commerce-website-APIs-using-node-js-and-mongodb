@@ -19,7 +19,7 @@ router.get('/', [validate('query', CategoryValidator.categories)], CategoryContr
 router.get('/sub/:id', [validateObjectId], CategoryController.subCategories);
 
 // fetch a Category
-router.get('/:id', [validateObjectId], CategoryController.category);
+router.get('/:id', CategoryController.category);
 
 // create a Category
 router.post(

@@ -17,7 +17,7 @@ export default class CategoryController {
 
 	// get item by id from database and return it as JSON object
 	static async category(req, res) {
-		const category = await Category.getCategoryById(req.params.id);
+		const category = await Category.getCategory(req.params.id);
 		if (!category) return res.status(404).send({ message: 'Category not found' });
 		res.status(200).send({ category });
 	}
@@ -40,9 +40,14 @@ export default class CategoryController {
 
 	static async updateCategory(req, res) {
 		const { id } = req.params;
-		const { title } = req.body;
+		const { title, parentId } = req.body;
 		const { file } = req;
-		const { err, status, message, category } = await Category.editCategory(id, title, file);
+		const { err, status, message, category } = await Category.editCategory(
+			id,
+			title,
+			parentId,
+			file
+		);
 		if (err) return res.status(status).send({ error: true, message });
 		await category.save();
 		res.status(200).send({ update: true, category });

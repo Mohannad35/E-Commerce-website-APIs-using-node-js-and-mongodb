@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import _ from 'lodash';
 import logger from '../middleware/logger.js';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import slug from 'mongoose-slug-updater';
 import config from 'config';
 import { deleteBlob } from '../start/azure-storage.js';
@@ -119,6 +119,11 @@ categorySchema.statics.getCategoryById = async function (id) {
 	return await Category.findById(id);
 };
 
+categorySchema.statics.getCategory = async function (slug) {
+	if (Types.ObjectId.isValid(slug)) return await Category.findById(slug);
+	return await Category.findOne({ slug });
+};
+
 categorySchema.statics.createCategory = async function (title, img, parentId = null) {
 	if (parentId) {
 		var parent = await Category.findById(parentId, 'title');
@@ -143,13 +148,13 @@ categorySchema.statics.createCategory = async function (title, img, parentId = n
 	return { category };
 };
 
-categorySchema.statics.editCategory = async function (id, title = null, img = null) {
+categorySchema.statics.editCategory = async function (id, title, parentId, img) {
 	let category = await Category.findById(id);
 	if (!category) return { err: true, status: 404, message: 'Category not found' };
 	if (title) category.title = title;
 	if (img) {
 		await unlink(
-			`${__dirname.replace(/model/, '')}public/categories/${category.img.replace(
+			`${__dirname.replace(/model/, '')}public/categories/${category.img?.replace(
 				/.*categories\//,
 				''
 			)}`,
@@ -157,9 +162,9 @@ categorySchema.statics.editCategory = async function (id, title = null, img = nu
 		);
 		await deleteBlob('images', category.img?.replace(/.*images\//, ''));
 
-		category.img = `${process.env.SERVER_URL || 'http://localhost:5000/'}categories/${
-			img.filename
-		}`;
+		category.img =
+			img.url?.replace(/\?.*/, '') ??
+			`${process.env.SERVER_URL || 'http://localhost:5000/'}categories/${img.filename}`;
 	}
 	return { category };
 };

@@ -43,7 +43,8 @@ export default class CategoryValidator {
 
 	static updateCategory(category) {
 		const Schema = Joi.object({
-			title: joiTitle
+			title: joiTitle,
+			parentId: joiId
 		});
 		return Schema.validate(category, { convert: false, abortEarly: false });
 	}

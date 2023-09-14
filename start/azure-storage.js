@@ -29,6 +29,7 @@ export const azureStorage = new MulterAzureStorage({
 });
 
 export async function deleteBlob(containerName, blobName) {
+	if (!containerName || !blobName) return;
 	// create container client
 	const containerClient = await blobServiceClient.getContainerClient(containerName);
 
