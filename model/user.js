@@ -256,5 +256,12 @@ userSchema.statics.banUser = async function (userId) {
 	return { user };
 };
 
+userSchema.statics.unbanUser = async function (userId) {
+	const user = await User.findById(userId, '-password');
+	if (!user) return { err: true, status: 404, message: 'User not found.' };
+	user.status = 'active';
+	return { user };
+};
+
 const User = mongoose.model('User', userSchema, 'user');
 export default User;

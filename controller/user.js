@@ -44,6 +44,15 @@ export default class UserController {
 		res.send({ user });
 	}
 
+	static async unbanUser(req, res) {
+		const { id } = req.body;
+		if (id === req.user._id) return res.status(400).send({ message: `You can't ban yourself` });
+		const { err, status, message, user } = await User.unbanUser(id);
+		if (err) return res.status(status).send({ message });
+		await user.save();
+		res.send({ user });
+	}
+
 	// create a user account and return the user and the logged in token
 	static async signup(req, res) {
 		const { body } = req;

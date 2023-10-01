@@ -27,6 +27,8 @@ router.delete('/', [auth, isAdmin, validate('body', UserValidator.id)], UserCont
 
 router.post('/ban', [auth, isAdmin, validate('body', UserValidator.id)], UserController.banUser);
 
+router.post('/unban', [auth, isAdmin, validate('body', UserValidator.id)], UserController.unbanUser);
+
 // signup
 router.post('/signup', [validate('body', UserValidator.signup)], UserController.signup);
 
