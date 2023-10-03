@@ -1,6 +1,6 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
-// import helmet from 'helmet';
+import helmet from 'helmet';
 import cors from 'cors';
 import userRouter from '../routes/user.js';
 import itemRouter from '../routes/item.js';
@@ -21,7 +21,7 @@ export default function (app) {
 	app.use(express.urlencoded({ extended: true }));
 	app.use(express.static('public'));
 	app.use(cookieParser());
-	// app.use(helmet());
+	app.use(helmet());
 	app.use(cors());
 	app.use(allowedHeaders);
 	// All controllers should live here
