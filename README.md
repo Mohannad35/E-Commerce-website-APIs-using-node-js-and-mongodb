@@ -1,7 +1,6 @@
-<h1 align="center">E-Commerce-API</h1>
+# E-Commerce-API
 
 ## Table of Contents
-- [Table of Contents](#table-of-contents)
 - [About The Project](#about-the-project)
 - [Environmental variables](#environmental-variables)
 - [Built With](#built-with)
